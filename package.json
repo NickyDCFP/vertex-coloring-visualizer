@@ -43,6 +43,8 @@
     "gh-pages": "^5.0.0"
   },
   "jest": {
-    "transformIgnorePatterns": ["/node_modules/(?!d3|d3-force)"]
+    "module-name-mapper": {
+      "^d3$": "<rootDir>/node_modules/d3/dist/d3.min.js"
+    }
   }
 }
