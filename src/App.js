@@ -54,7 +54,7 @@ const App = () => {
     console.log(graph.edges);
   }, []);
 
-  return <div ref={containerRef} />
+  return <div data-testid="graphElement" ref={containerRef} />
 }
 
 export default App;
