@@ -39,6 +39,7 @@ const App = () => {
   useEffect(() => {
     const svg = d3.select(containerRef.current)
       .append('svg')
+      .classed('graph-display', true)
       .attr('width', innerWidth)
       .attr('height', innerHeight);
     const graph = new Graph(svg, centerX, centerY, '#45d097', true);
