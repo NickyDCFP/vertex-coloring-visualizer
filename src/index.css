@@ -5,9 +5,26 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+  overflow: hidden;
 }
-
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+.edge {
+  stroke: gray;
+  stroke-width: 3px;
+  stroke-linecap: round;
+}
+cursor {
+  opacity: 1;
+  stroke: red;
+}
+svg {
+  background-color: #02000b;
+}
+.node{
+  stroke: white;
+  stroke-width: 0.15em;
 }
