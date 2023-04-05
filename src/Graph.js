@@ -9,7 +9,7 @@ import * as d3 from 'd3';
 // Don't need a ton of event listeners on all of the nodes, just need one listener on the svg and
 // you can read the target with "this"
 
-// Control shit with react dropdowns
+// Control stuff with react dropdowns
 
 // Move the graph into its own component, GraphViz component or something
 const radius = 7;
