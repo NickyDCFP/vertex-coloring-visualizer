@@ -43,6 +43,9 @@ jobs:
       - name: Deploy App
         run: npm run deploy
         env:
+            name: github-pages
+            url: ${{ steps.deployment.outputs.page_url }}
             github_token: ${{ secrets.ACCESS_TOKEN }}
             publish_dir: ../build
+            repository: ${{ github.repository }}
 
