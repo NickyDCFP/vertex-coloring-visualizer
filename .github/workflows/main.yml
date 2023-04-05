@@ -43,7 +43,8 @@ jobs:
     needs: build
     steps: 
     - name: Deploy App
-      uses: peaceiris/actions-gh-pages@v3
-      with:
+      run: npm run deploy
+      env:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./public
+        publish_dir: ./build
+        
