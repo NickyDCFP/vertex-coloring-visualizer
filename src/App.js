@@ -24,12 +24,13 @@ const centerX = innerWidth / 2;
 const centerY = innerHeight / 2;
 const radius = 7;
 
+/*
 const boundsCheck = (value, bound) => {
   if(value < radius) return radius + 10;
   if(value > bound - radius) return bound - 10;
   return value;
 }
-
+*/
 
 
 const App = () => {
