@@ -1,7 +1,7 @@
 import './App.css';
 import * as d3 from 'd3';
 import {useEffect, useRef} from 'react';
-import {Graph} from './Graph'
+import {Graph} from './Graph';
 
 //current issues: duplicates are present in the adjacency list (as in, 1: [0, 0, 1])
 //                we still want the adjacency to go both ways, since this is an
