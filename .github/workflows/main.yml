@@ -60,14 +60,10 @@ jobs:
     - name: Authenticate
       env:
         ACCESS_TOKEN: ${{ secrets.ACTIONS_DEPLOYMENT_TOKEN }}
-        username: NickyDCFP
-        repo: vertex-coloring-visualizer
       run: |
         git config --global user.email ${{ secrets.USER_EMAIL }}
-        git config --global user.name <username>
-        git remote add origin https://<ACCESS_TOKEN>@github.com/<username>/<repo>.git
-
-    - run: git config --global user.name NickyDCFP
+        git config --global user.name NickyDCFP
+        git remote add origin https://<ACCESS_TOKEN>@github.com/NickyDCFP/vertex-coloring-visualizer.git
     - name: Deploy App
       run: npm run deploy
       env:
