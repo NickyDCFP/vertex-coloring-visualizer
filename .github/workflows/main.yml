@@ -43,6 +43,7 @@ jobs:
           ${{ runner.os }}-build-
           ${{ runner.os }}-
     - run: npm uninstall react-scripts
+    - run: npm install react-scripts
     - name: Install Dependencies
       run: npm install
     - name: Setup CI
