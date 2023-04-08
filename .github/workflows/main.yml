@@ -57,13 +57,11 @@ jobs:
     - name: Checkout Repo
       uses: actions/checkout@v3
     - run: npm install react-scripts
-    - name: Authenticate
-      env:
-        ACCESS_TOKEN: ${{ secrets.ACTIONS_DEPLOYMENT_TOKEN }}
+    - name: Authentica]te
       run: |
         git config --global user.email ${{ secrets.USER_EMAIL }}
         git config --global user.name NickyDCFP
-        git remote add origin https://<ACCESS_TOKEN>@github.com/NickyDCFP/vertex-coloring-visualizer.git
+        git remote add origin https://${{ secrets.ACTIONS_DEPLOYMENT_TOKEN }}@github.com/NickyDCFP/vertex-coloring-visualizer.git
     - name: Deploy App
       run: npm run deploy
       env:
