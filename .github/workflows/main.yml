@@ -43,7 +43,6 @@ jobs:
           ${{ runner.os }}-build-
           ${{ runner.os }}-
     - run: npm uninstall react-scripts
-    - run: npm install react-scripts
     - name: Install Dependencies
       run: npm install
     - name: Setup CI
@@ -56,6 +55,7 @@ jobs:
     steps: 
     - name: Checkout Repo
       uses: actions/checkout@v3
+    - run: npm install react-scripts
     - name: Deploy App
       run: npm run deploy
       env:
