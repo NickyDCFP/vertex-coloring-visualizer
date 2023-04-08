@@ -28,7 +28,7 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-            # Consider this as an add on to optimize the execution of actions
+    # Consider this as an add on to optimize the execution of actions
     - name: Cache node modules
       id: cache-npm
       uses: actions/cache@v3
@@ -42,8 +42,6 @@ jobs:
           ${{ runner.os }}-build-${{ env.cache-name }}-
           ${{ runner.os }}-build-
           ${{ runner.os }}-
-    - run: npm uninstall react-scripts
-    - run: npm install react-scripts
     - name: Install Dependencies
       run: npm install
     - name: Setup CI
