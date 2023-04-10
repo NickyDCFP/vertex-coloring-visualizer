@@ -8,16 +8,10 @@ import {Graph} from './Graph';
 //                undirected graph
 //duplicates are present in the edges list, which is easy (just don't add the edge twice)
 
-//although maybe want to make sure that the edge that
-//they're adding, when they're adding it,
-//doesn't already exist... but can do that check in the
-//adjacency list in O(deg) time
-
 //maybe have pitches deepen as the recursion stack grows
 
 // things to ask aloupis about:
   // curved edges necessary? the internal graph can be sufficiently complex, i'm sure
-  // how to host?
 const innerHeight = window.innerHeight;
 const innerWidth = window.innerWidth;
 const centerX = innerWidth / 2;
