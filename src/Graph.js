@@ -31,60 +31,66 @@ export class Graph {
             .force('collide', d3.forceCollide().radius(30))
             .force('x', d3.forceX().x(centerX).strength(0.2))
             .force('y', d3.forceY().y(centerY).strength(0.2));
-        this.svg = svg.on('mouseup', (event, d) => this.handleMouseUp(event, d))
-            .on('click', (event, d) => this.handleClick(event, d))
+        this.svg = svg.on('mouseup', (event) => this.handleMouseUp(event))
+            .on('click', (event) => this.handleClick(event))
+            .on('mousedown', (event) => this.handleMouseDown(event))
             .style("cursor", "crosshair");
         this.circles = this.svg.append('g')
             .classed('node-group', true);
+        this.circleSelection = this.circles.selectAll('.node');
         this.lines = this.svg.append('g')
             .classed('edge-group', true);
+        this.lineSelection = this.lines.selectAll('.edge');
         this.lines.lower();
         this.doText = doText;
         this.text = this.svg.append('g')
             .classed('text-group', true);
         this.text.raise();
+        this.textSelection = this.text.selectAll('.node-label');
         this.selectedNode = null;
         this.potentialEdge = null;
         this.simulation.on('tick', () => {
-            this.circles.selectAll('.node')
+            this.circleSelection
                 .attr('cx', node => node.x)
                 .attr('cy', node => node.y);
-            this.text.selectAll('.node-label')
+            this.textSelection
                 .attr('x', node => node.x)
                 .attr('y', node => node.y + 1);
-            this.lines.selectAll('.edge')
+            this.lineSelection
                 .attr('x1', edge => edge.source.x)
                 .attr('x2', edge => edge.target.x)
                 .attr('y1', edge => edge.source.y)
                 .attr('y2', edge => edge.target.y);
         });
     }
-    handleClick(event, clicked) {
+    handleClick(event) {
         event.stopPropagation();
         if(event.target.tagName === 'line') {
-            this.removeEdge(clicked.source, clicked.target);
+            const line = d3.select(event.target).datum()
+            this.removeEdge(line.source, line.target);
         }
         else if(event.target.tagName === 'svg') {
             if(!this.selectedNode && !this.potentialLine) this.addNode(event.clientX, event.clientY);
             this.selectedNode = null;
         }
     }
-    handleMouseDown(event, clicked) {
+    handleMouseDown(event) {
         event.stopPropagation();
         if(event.target.tagName === 'circle') {
-            this.svg.on('mousemove', (event, clicked) => this.handleMouseMove(event, clicked))
+            const node = d3.select(event.target).datum();
+            this.svg.on('mousemove', (event) => this.handleMouseMove(event))
             this.potentialLine = this.svg.append('line')
                 .classed('edge', true)
-                .attr('x1', clicked.x)
-                .attr('y1', clicked.y)
-                .attr('x2', clicked.x)
-                .attr('y2', clicked.y)
+                .attr('x1', node.x)
+                .attr('y1', node.y)
+                .attr('x2', node.x)
+                .attr('y2', node.y)
                 .attr('stroke', 'gray')
                 .lower();
-            this.selectedNode = clicked;
+            this.selectedNode = node;
         }
     }
-    handleMouseUp(event, clicked) {
+    handleMouseUp(event) {
         event.stopPropagation();
         this.svg.on('mousemove', null);
         if(this.potentialLine) {
@@ -92,11 +98,12 @@ export class Graph {
             this.potentialLine = null;
         }
         if(event.target.tagName === 'circle') {
-            if(this.selectedNode) this.addEdge(this.selectedNode.id, clicked.id);
+            const node = d3.select(event.target).datum();
+            if(this.selectedNode) this.addEdge(this.selectedNode.id, node.id);
         }
         this.selectedNode = null;
     }
-    handleMouseMove(event, clicked) {
+    handleMouseMove(event) {
         if(this.potentialLine) {
             this.potentialLine
                 .attr('x2', event.clientX)
@@ -111,12 +118,10 @@ export class Graph {
             .append('circle')
             .classed('node', true)
             .attr('fill', node => node.color)
-            .attr('r', radius)
-            .on('mousedown', (event, clicked) => this.handleMouseDown(event, clicked))
-            .on('mouseup', (event, clicked) => this.handleMouseUp(event, clicked));
+            .attr('r', radius);
         this.circles.exit().remove();
         this.text
-            .selectAll('.text-label')
+            .selectAll('.node-label')
             .data(this.nodes)
             .enter()
             .append('text')
@@ -128,6 +133,8 @@ export class Graph {
             .style('font-size', '0.5em')
             .text(node => this.doText ? node.id : "");
         this.text.exit().remove();
+        this.circleSelection = this.circles.selectAll('.node');
+        this.textSelection = this.text.selectAll('.node-label');
     }
     updateEdges() {
         this.simulation.force('link', d3.forceLink(this.edges));
@@ -138,7 +145,6 @@ export class Graph {
         lines.enter()
             .append('line')
             .classed('edge', true)
-            .on('click', (event, clicked) => this.handleClick(event, clicked))
             .on('mouseover', (event) => {
                 d3.select(event.currentTarget)
                 .style('stroke', 'red')
@@ -149,6 +155,7 @@ export class Graph {
                 .style('stroke', 'gray')
             })
             .lower();
+        this.lineSelection = this.lines.selectAll('.edge');
         this.simulation.alpha(0.2).restart();
     }
     addNode(x, y) {
