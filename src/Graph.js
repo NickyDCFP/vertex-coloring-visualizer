@@ -2,13 +2,6 @@ import * as d3 from 'd3';
 // if you add event listeners, be sure to remove them when you delete the node or destroy
 // the graph
 
-// When you have a potential edge and let go, it creates a new node
-// When you have no potential edge, are holding down, and release on top of a node, then it creates a new node :( (not a real issue when nodes
-// will become stationary)
-
-// Don't need a ton of event listeners on all of the nodes, just need one listener on the svg and
-// you can read the target with "this"
-
 // Control stuff with react dropdowns
 
 // Move the graph into its own component, GraphViz component or something
@@ -49,6 +42,7 @@ export class Graph {
         this.textSelection = this.text.selectAll('.node-label');
         this.selectedNode = null;
         this.potentialEdge = null;
+        this.createNode = false;
         this.simulation.on('tick', () => {
             this.circleSelection
                 .attr('cx', node => node.x)
@@ -70,9 +64,10 @@ export class Graph {
             this.removeEdge(line.source, line.target);
         }
         else if(event.target.tagName === 'svg') {
-            if(!this.selectedNode && !this.potentialLine) this.addNode(event.clientX, event.clientY);
+            if(this.createNode) this.addNode(event.clientX, event.clientY);
             this.selectedNode = null;
         }
+        this.createNode = false;
     }
     handleMouseDown(event) {
         event.stopPropagation();
@@ -97,6 +92,7 @@ export class Graph {
             this.potentialLine.remove();
             this.potentialLine = null;
         }
+        else if(event.target.tagName === 'svg') this.createNode = true;
         if(event.target.tagName === 'circle') {
             const node = d3.select(event.target).datum();
             if(this.selectedNode) this.addEdge(this.selectedNode.id, node.id);
