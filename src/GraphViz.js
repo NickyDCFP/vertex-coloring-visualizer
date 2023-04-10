@@ -3,10 +3,10 @@ import {useEffect, useRef} from 'react';
 import {Graph} from './Graph';
 
 export const GraphViz = ({innerHeight, innerWidth, radius}) => {
-    const centerX = innerWidth / 2;
-    const centerY = innerHeight / 2;
     const containerRef = useRef(null);
     useEffect(() => {
+      const centerX = innerWidth / 2;
+      const centerY = innerHeight / 2;
       const svg = d3.select(containerRef.current)
         .append('svg')
         .classed('graph-display', true)
@@ -21,7 +21,7 @@ export const GraphViz = ({innerHeight, innerWidth, radius}) => {
       console.log(graph.adj);
       console.log(graph.nodes);
       console.log(graph.edges);
-    }, []);
+    }, [radius, innerHeight, innerWidth]);
   
     return <div data-testid="graphElement" ref={containerRef} />
   }
