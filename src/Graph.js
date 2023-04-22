@@ -2,8 +2,11 @@ import * as d3 from 'd3';
 
 // Control stuff with react dropdowns
 
-// Things to do before push:
-    // Make triangulation stoppable, etc.
+// NOTES ABOUT HEURISTICS
+    // Kempe chaining: Try 100 different combinations of neighbors and then return...
+        // Means the vertex can have arbitrary degree and can be
+        // used with ordering methods besides smallest-last, but still works better with
+        // smallest last than saturation
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
