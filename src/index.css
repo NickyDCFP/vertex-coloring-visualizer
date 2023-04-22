@@ -14,8 +14,12 @@ code {
 }
 .edge {
   stroke: gray;
+  opacity: 0.7;
   stroke-width: 3px;
   stroke-linecap: round;
+}
+.edge:hover {
+  stroke: red;
 }
 cursor {
   opacity: 1;
@@ -27,4 +31,61 @@ svg {
 .node{
   stroke: white;
   stroke-width: 0.15em;
+}
+.node-label {
+  pointer-events: none;
+  user-select: none;
+  font-size: 0.5em;
+}
+.check-label {
+  user-select: none;
+}
+.user-interface {
+  background-color: #e5e2e0;
+}
+button {
+  border: 0px solid rgba(255, 255, 255, 0); /* border for inset shadows */
+  box-sizing: border-box;
+  font-family: Franklin Gothic Light;
+  padding: 7px;
+  border-radius: 5px;
+  margin-bottom: 5px;
+  margin-left: 5px;
+  margin-top: 5px;
+  font-size: 1.5em;
+  text-align: center;
+  user-select: none;
+  cursor: pointer;
+  color: #2e2e2e;
+  transition-duration: 0.2s;
+}
+button:hover {
+  box-shadow: 0 1px 3px 1px #2527294d, 0 4px 8px 3px #25272926;
+}
+button:active {
+  box-shadow: inset 0 1px 3px 1px #2527291d, 0 4px 8px 3px #25272986;
+  transition-duration: 0.05s;
+}
+.toggle-button,
+.state-button-off,
+.state-button-on {
+  width: 150px;
+}
+.toggle-button, .state-button-off {
+  background-color: #8585ff;
+}
+.toggle-button:hover, .state-button-off:hover {
+  background-color: #b8b8f6;
+}
+.toggle-button:active, .state-button-off:active {
+  background-color: #b8b8f69e;
+}
+.state-button-on {
+  background-color: #ff8585;
+}
+.state-button-on:hover{
+  background-color: #f6b8b8;
+}
+.state-button-on:active {
+  background-color: #f6b8b89e;
 }
