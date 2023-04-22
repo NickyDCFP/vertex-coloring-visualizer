@@ -73,7 +73,7 @@ export const GraphViz = ({
       }
       
       return () => clearInterval(interval);
-    }, [triangulate, graph, graphExists]);
+    }, [triangulate, graph, graphExists, toggleTriangulate]);
 
     useEffect(() => {
       if(graphExists && clear) {
