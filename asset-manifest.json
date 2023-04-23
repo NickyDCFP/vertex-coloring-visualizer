@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/vertex-coloring-visualizer/static/css/main.06eb14fa.css",
-    "main.js": "/vertex-coloring-visualizer/static/js/main.3a7e4bc4.js",
+    "main.js": "/vertex-coloring-visualizer/static/js/main.a56792bd.js",
     "static/js/787.bf9df236.chunk.js": "/vertex-coloring-visualizer/static/js/787.bf9df236.chunk.js",
     "index.html": "/vertex-coloring-visualizer/index.html",
     "main.06eb14fa.css.map": "/vertex-coloring-visualizer/static/css/main.06eb14fa.css.map",
-    "main.3a7e4bc4.js.map": "/vertex-coloring-visualizer/static/js/main.3a7e4bc4.js.map",
+    "main.a56792bd.js.map": "/vertex-coloring-visualizer/static/js/main.a56792bd.js.map",
     "787.bf9df236.chunk.js.map": "/vertex-coloring-visualizer/static/js/787.bf9df236.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.06eb14fa.css",
-    "static/js/main.3a7e4bc4.js"
+    "static/js/main.a56792bd.js"
   ]
 }
