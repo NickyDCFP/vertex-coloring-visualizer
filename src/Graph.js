@@ -391,15 +391,16 @@ export class Graph {
     return true;
   }
   removeNode(vertex) {
+    vertex = Number(vertex);
     const adjReference = { ...this.adj[vertex] };
     const neighbors = this.adj[vertex].neighbors;
-    const node = this.nodes.find(node => node.id == vertex);
+    const node = this.nodes.find(node => node.id === vertex);
     for (const neighbor of neighbors) {
-      const neighborNode = this.nodes.find(node => node.id == neighbor);
+      const neighborNode = this.nodes.find(node => node.id === neighbor);
       this.removeEdge(node, neighborNode);
     }
     delete this.adj[vertex];
-    this.nodes = this.nodes.filter(node => node.id != vertex);
+    this.nodes = this.nodes.filter(node => node.id !== vertex);
     this.updateNodes();
     return adjReference;
   }
@@ -445,15 +446,15 @@ export class Graph {
   recolor(vertex, color) {
     this.adj[vertex].node.color = color;
     this.circleSelection
-      .filter(d => d.id == vertex)
+      .filter(d => d.id === vertex)
       .attr("fill", (node) => this.colors[node.color]);
   }
   triviallyColor(vertex) {
     let freeColors = [1, 2, 3, 4];
     for(const neighbor of this.adj[vertex].neighbors) {
-      freeColors = freeColors.filter(color => color != this.adj[neighbor].node.color);
+      freeColors = freeColors.filter(color => color !== this.adj[neighbor].node.color);
     }
-    if(freeColors.length == 0) return false;
+    if(freeColors.length === 0) return false;
     this.recolor(vertex, freeColors[Math.floor(Math.random() * freeColors.length)]);
     return true;
   }
@@ -469,7 +470,7 @@ export class Graph {
     for(const neighbor of randomizedNeighbors) {
       if(interchanges === maxKempeInterchanges) return false;
       const neighborColor = this.adj[neighbor].node.color;
-      let freeColors = [1, 2, 3, 4].filter(color => color != neighborColor);
+      let freeColors = [1, 2, 3, 4].filter(color => color !== neighborColor);
       for(const color of freeColors) {
         ++interchanges;
         this.interchange(neighbor, color, {...visited});
@@ -482,7 +483,7 @@ export class Graph {
     const v_color = this.adj[vertex].node.color;
     this.recolor(vertex, color);
     for(const neighbor of this.adj[vertex].neighbors) {
-      if(!visited[neighbor] && this.adj[neighbor].node.color == color) 
+      if(!visited[neighbor] && this.adj[neighbor].node.color === color) 
         this.interchange(neighbor, v_color, visited);
     }
   }
