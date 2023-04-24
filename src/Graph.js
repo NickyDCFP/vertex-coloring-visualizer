@@ -1,17 +1,6 @@
 import * as d3 from 'd3';
 import Heap from 'heap';
-
-// Control stuff with react dropdowns
-
-// NOTES ABOUT HEURISTICS
-// Kempe chaining: Try 100 different combinations of neighbors and then return...
-// Means the vertex can have arbitrary degree and can be
-// used with ordering methods besides smallest-last, but still works better with
-// smallest last than saturation
-// Wandering 5th color: Wander a tree of unique neighbors while you have a unique neighbor
-// Limit how many times you can visit any one node in your search
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
+import Queue from 'queue';
 
 const maxKempeInterchanges = 100;
 
@@ -91,10 +80,12 @@ export class Graph {
     doText,
     radius,
     planar,
-    nodeMinSpacing = 30,
+    nodeMinSpacing = 20,
     nodeEdgePadding = 1,
     nodeBoundaryPadding = 2,
+    coloringSpeed = 20
   ) {
+    this.printConsole = null;
     this.adj = {};
     this.nodes = [];
     this.edges = [];
@@ -131,6 +122,9 @@ export class Graph {
     this.possibleEdges = [];
     // Stack used for coloring
     this.smallestLast = [];
+    // Queue of functions to be called regularly during coloring
+    this.coloringQueue = new Queue();
+    this.coloringSpeed = coloringSpeed;
     this.setUpSimulation(centerX, centerY);
     for (let i = 0; i < 5; ++i) this.addNode();
     for (let i = 0; i < 5; ++i)
@@ -167,6 +161,9 @@ export class Graph {
       .on("mousedown", (event) => this.handleMouseDown(event))
       .style("cursor", "crosshair");
   }
+  configureConsole(printConsole) {
+    this.printConsole = printConsole;
+  }
   handleClick(event) {
     event.stopPropagation();
     if (event.target.tagName === "line") {
@@ -176,7 +173,8 @@ export class Graph {
       if (this.createNode)
         this.addPositionNode(
           event.clientX - this.rect.x,
-          event.clientY - this.rect.y
+          event.clientY - this.rect.y,
+          true
         );
       this.selectedNode = null;
     }
@@ -208,7 +206,7 @@ export class Graph {
     } else if (event.target.tagName === "svg") this.createNode = true;
     if (event.target.tagName === "circle") {
       const node = d3.select(event.target).datum();
-      if (this.selectedNode) this.addEdge(this.selectedNode.id, node.id);
+      if (this.selectedNode) this.addEdge(this.selectedNode.id, node.id, true);
     }
     this.selectedNode = null;
   }
@@ -289,8 +287,16 @@ export class Graph {
       this.rect.height
     );
   }
-  checkNodePlanarityConstraints(x, y) {
-    return this.checkNodeInBounds(x, y) && !this.checkNodeOverlap(x, y);
+  checkNodePlanarityConstraints(x, y, warn = false) {
+    if (!this.checkNodeInBounds(x, y)) {
+      if (warn) this.printConsole(`Oops! That node is too close to the boundary.`, true);
+      return false;
+    }
+    if (this.checkNodeOverlap(x, y)) {
+      if (warn) this.printConsole(`Oops! That node is too close to another node or edge.`, true);
+      return false;
+    }
+    return true;
   }
   //Keep trying to add a node till it works
   addNode() {
@@ -309,8 +315,8 @@ export class Graph {
         for (let i = 0; i < 10; ++i) this.simulation.tick();
     return failedAttempts === 100;
   }
-  addPositionNode(x, y) {
-    if (this.planar && !this.checkNodePlanarityConstraints(x, y)) return false;
+  addPositionNode(x, y, warn = false) {
+    if (this.planar && !this.checkNodePlanarityConstraints(x, y, warn)) return false;
     const node = { id: this.v, color: 0, x, y };
     this.nodes.push(node);
     this.adj[this.v++] = { node, neighbors: [] };
@@ -324,12 +330,12 @@ export class Graph {
     adjReference.neighbors = [];
     this.adj[node.id] = adjReference;
     this.nodes.push(node);
-    for(const neighbor of neighbors) this.addEdge(node.id, neighbor);
+    for (const neighbor of neighbors) this.addEdge(node.id, neighbor);
     this.updateNodes();
     this.updateEdges();
   }
   // Ensure there are no edge crossings and the edge doesn't pass through a node
-  checkEdgePlanarity(source, target) {
+  checkEdgePlanarity(source, target, warn = false) {
     const line1 = { x1: source.x, x2: target.x, y1: source.y, y2: target.y };
     let line2;
     for (const edge of this.edges) {
@@ -339,26 +345,35 @@ export class Graph {
         y1: edge.source.y,
         y2: edge.target.y,
       };
-      if (intersect2d(line1, line2)) return false;
+      if (intersect2d(line1, line2)) {
+        if (warn) this.printConsole(
+          'Oops, that edge crosses another edge, violating planarity!',
+          true
+        );
+        return false;
+      }
     }
     for (const node of this.nodes) {
       if (node === source || node === target) continue;
       if (
         pointDistanceToSegment(line1, node.x, node.y) <
         this.radius + this.nodeEdgePadding
-      )
+      ) {
+        if (warn) this.printConsole(`Oops, that edge is too close to a node!
+                                    (this check keeps the graph looking clean)`);
         return false;
+      }
     }
     return true;
   }
-  addEdge(source, target) {
+  addEdge(source, target, warn = false) {
     const source_adj = this.adj[source];
     const target_adj = this.adj[target];
     if (
       source === target ||
       source_adj.neighbors.includes(target) ||
       (this.planar &&
-        !this.checkEdgePlanarity(source_adj.node, target_adj.node))
+        !this.checkEdgePlanarity(source_adj.node, target_adj.node, warn))
     )
       return false;
     source_adj.neighbors.push(target);
@@ -420,8 +435,20 @@ export class Graph {
     this.updateNodes();
     this.updateEdges();
   }
-  color() {
+  coloringStep(interval, resetColor) {
+    if (this.coloringQueue.length === 0) { clearInterval(interval); resetColor(); }
+    const step = this.coloringQueue.shift();
+    if (step === undefined) return;
+    if (step['self']) step['func'].call(this, ...step['params']);
+    else step['func'](...step['params']);
+  }
+  exhaustQueue(resetColor) {
+    let interval = setTimeout(() => // Delay so the interval can compute before we pass it
+      setInterval(() => this.coloringStep(interval, resetColor), this.coloringSpeed), 0);
+  }
+  color(resetColor) {
     if (!this.planar) return;
+    for(const node of this.nodes) node.color = 0;
     const vertexHeap = new Heap((a, b) => a.degree - b.degree); // min-heap
     const heapPointers = {};
     for (const id in this.adj) {
@@ -435,56 +462,108 @@ export class Graph {
       }
       this.smallestLast.push(this.removeNode(vertex.id));
     }
-    while(this.smallestLast.length > 0) {
+    while (this.smallestLast.length > 0) {
       const adjReference = this.smallestLast.pop();
       this.reintroduceNode(adjReference);
-      if(!this.triviallyColor(adjReference.node.id)) {
-        if(!this.impasse(adjReference.node.id)) return;
+      if (!this.triviallyColor(adjReference.node.id)) {
+        if (!this.impasse(adjReference.node.id)) break;
       }
     }
+    this.exhaustQueue(resetColor);
   }
-  recolor(vertex, color) {
-    this.adj[vertex].node.color = color;
+  updateColor(vertex, transitionColor = '#ffffff', finalColor = this.adj[vertex].node.color
+  ) {
     this.circleSelection
       .filter(d => d.id === vertex)
-      .attr("fill", (node) => this.colors[node.color]);
+      .transition()
+      .duration(200)
+      .attr('fill', transitionColor)
+      .attr('r', this.radius + 5)
+      .transition()
+      .duration(600)
+      .attr('r', this.radius)
+      .attr('fill', this.colors[finalColor]);
   }
-  triviallyColor(vertex) {
+  recolor(vertex, color, transitionColor = '#ffffff') {
+    this.adj[vertex].node.color = color;
+    this.coloringQueue.push({
+      'func': this.updateColor,
+      'params': [vertex, transitionColor],
+      'self': true
+    });
+  }
+  triviallyColor(vertex, wasImpasse = false) {
     let freeColors = [1, 2, 3, 4];
-    for(const neighbor of this.adj[vertex].neighbors) {
+    for (const neighbor of this.adj[vertex].neighbors) {
       freeColors = freeColors.filter(color => color !== this.adj[neighbor].node.color);
     }
-    if(freeColors.length === 0) return false;
-    this.recolor(vertex, freeColors[Math.floor(Math.random() * freeColors.length)]);
+    if (freeColors.length === 0) return false;
+    let transitionColor = '#ffffff';
+    if (wasImpasse) transitionColor = '#7cfc00';
+    this.recolor(vertex, freeColors[Math.floor(Math.random() * freeColors.length)], transitionColor);
     return true;
   }
   impasse(vertex) {
-    console.log(`impasse at node ${vertex}`);
+    this.coloringQueue.push({
+      'func': this.updateColor,
+      'params': [vertex, 'red', 0],
+      'self': true
+    });
+    this.coloringQueue.push({
+      'func': this.printConsole,
+      'params': [`Impasse at node ${vertex}...`, true],
+      'self': false
+    });
     return this.kempe(vertex);
   }
   kempe(vertex) {
     const randomizedNeighbors = [...this.adj[vertex].neighbors].sort(() => Math.random() - 0.5);
     let interchanges = 0;
-    let visited = {};
-    for(const id in this.adj) visited[id] = false;
-    for(const neighbor of randomizedNeighbors) {
-      if(interchanges === maxKempeInterchanges) return false;
+    for (const neighbor of randomizedNeighbors) {
+      if (interchanges === maxKempeInterchanges) return false;
       const neighborColor = this.adj[neighbor].node.color;
       let freeColors = [1, 2, 3, 4].filter(color => color !== neighborColor);
-      for(const color of freeColors) {
+      for (const color of freeColors) {
         ++interchanges;
-        this.interchange(neighbor, color, {...visited});
-        if(this.triviallyColor(vertex)) { console.log(`resolved in ${interchanges} interchanges`); return true; }
+        this.interchange(neighbor, color);
+        if (this.triviallyColor(vertex, true)) {
+          this.coloringQueue.push({
+            'func': this.printConsole,
+            'params': [`Resolved in ${interchanges} Kempe
+                      ${interchanges === 1 ? `chain` : `chains`}!`],
+            'self': false
+          });
+          return true;
+        }
       }
     }
     return false;
   }
+
+  // Iterative DFS to avoid stack overflows
+  interchange(vertex, color) {
+    let visited = {};
+    for (const id in this.adj) visited[id] = false;
+    let nextVertices = [[vertex, color]];
+    while (nextVertices.length !== 0) {
+      [vertex, color] = nextVertices.pop();
+      visited[vertex] = true;
+      const v_color = this.adj[vertex].node.color;
+      this.recolor(vertex, color, 'black');
+      for (const neighbor of this.adj[vertex].neighbors)
+        if (!visited[neighbor] && this.adj[neighbor].node.color === color)
+          nextVertices.push([neighbor, v_color]);
+    }
+  }
+
+  /*
   interchange(vertex, color, visited) {
     const v_color = this.adj[vertex].node.color;
-    this.recolor(vertex, color);
+    this.recolor(vertex, color, 'black');
     for(const neighbor of this.adj[vertex].neighbors) {
       if(!visited[neighbor] && this.adj[neighbor].node.color === color) 
         this.interchange(neighbor, v_color, visited);
     }
   }
+  */
 }

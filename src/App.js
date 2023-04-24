@@ -1,18 +1,19 @@
 import './App.css';
 import { GraphViz } from './GraphViz';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 
 // Down the road:
 // Add icon/better meta tags
 // sounds for coloring, maybe have pitches deepen as the recursion stack grows
-// Maybe include a little mini-console at the top right
 // add nice animations for edge triangulation and coloring
+// control stuff with react dropdowns
 
 // things to ask aloupis about:
 // curved edges necessary? the internal graph can be sufficiently complex, i'm sure
 
 const innerHeight = window.innerHeight;
 const innerWidth = window.innerWidth;
+const defaultConsoleMessage = 'Welcome! Please swap to Planar mode for vertex coloring!';
 
 
 const App = () => {
@@ -21,13 +22,48 @@ const App = () => {
   const [triangulate, setTriangulate] = useState(false);
   const [clear, setClear] = useState(false);
   const [color, setColor] = useState(false);
+  const [consoleMessage, setConsoleMessage] = useState(defaultConsoleMessage);
+  const [consoleError, setConsoleError] = useState(false);
 
-  const togglePlanarity = () => setPlanarity(!planarity);
-  const toggleAddNodes = () => setAddNodes(!addNodes);
-  const toggleTriangulate = () => setTriangulate(!triangulate);
-  const toggleClear = () => setClear(!clear);
-  const startColor = () => setColor(true);
-  const resetColor = () => setColor(false);
+  const togglePlanarity = () => {
+    setPlanarity(!planarity);
+    let message;
+    if (!planarity) message = `Planar! Add nodes and triangulate for a more complex graph.
+                              Let's color!`;
+    else message = 'Non-planar!';
+    printConsole(message);
+  }
+  const toggleAddNodes = () => {
+    setAddNodes(!addNodes);
+    let message;
+    if (!addNodes) message = `Adding nodes... Please stop this manually.`;
+    else message = `Stopped adding nodes.`;
+    printConsole(message);
+  }
+  const toggleTriangulate = (finished = false) => {
+    setTriangulate(!triangulate);
+    let message;
+    if (!triangulate) message = planarity ? `Triangulating...` : `Completing...`;
+    else if (finished === true) message = `Finished ${planarity ? `triangulating` : `completing`}!`;
+    else message = `Stopped ${planarity ? `triangulating` : `completing`}.`;
+    printConsole(message);
+  }
+  const toggleClear = () => {
+    setClear(!clear);
+    if(!clear) printConsole(`Cleared!`);
+  }
+  const startColor = () => {
+    setColor(true);
+    printConsole(`Coloring...`);
+  }
+  const resetColor = () => {
+    setColor(false);
+    if(!color) printConsole(`Finished coloring!`);
+  }
+  const printConsole = useCallback((message, isError = false) => {
+    setConsoleMessage(message);
+    setConsoleError(isError);
+  }, []);
 
   return (
     <>
@@ -39,9 +75,9 @@ const App = () => {
         <button
           onClick={toggleAddNodes}
           className={`state-button-${addNodes ? `on` : `off`}`}
-        >{addNodes ? 'Stop Adding' : 'Add Nodes'}</button>
+        >{addNodes ? 'Stop' : 'Add Nodes'}</button>
         <button
-          onClick={toggleTriangulate}
+          onClick={() => toggleTriangulate(false)}
           className={`state-button-${triangulate ? `on` : `off`}`}
         >{planarity ? (triangulate ? `Stop` : `Triangulate`) :
           (triangulate ? `Stop` : `Complete`)}</button>
@@ -49,15 +85,18 @@ const App = () => {
           onClick={toggleClear}
           className="toggle-button"
         >{clear ? `Clearing` : `Clear`}</button>
-        <button
-          onClick={startColor}
-          className="toggle-button"
-        >{color ? `Coloring` : `Color`}</button>
+        {planarity ?
+          <button
+            onClick={startColor}
+            className="toggle-button"
+          >{color ? `Coloring` : `Color`}</button> : null}
+        <div className={`console${consoleError ? `-error` : ``}`}>{consoleMessage}</div>
       </div>
       <GraphViz
         innerHeight={innerHeight}
         innerWidth={innerWidth}
         radius={9}
+        printConsole={printConsole}
         planar={planarity}
         addNodes={addNodes}
         triangulate={triangulate}

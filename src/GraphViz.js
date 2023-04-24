@@ -6,6 +6,7 @@ export const GraphViz = ({
   innerHeight,
   innerWidth,
   radius,
+  printConsole,
   planar,
   addNodes,
   triangulate,
@@ -13,13 +14,15 @@ export const GraphViz = ({
   clear,
   toggleClear,
   color,
-  resetColor
+  resetColor,
 }) => {
   const containerRef = useRef(null);
   const [svg, setSvg] = useState(null);
   const [graph, setGraph] = useState(null);
   const [graphExists, setGraphExists] = useState(false);
   const [triangulationBegun, setTriangulationBegun] = useState(false);
+  const [coloringStarted, setColoringStarted] = useState(false);
+
 
   useEffect(() => {
     setSvg(d3.select(containerRef.current)
@@ -41,6 +44,12 @@ export const GraphViz = ({
   }, [svg, containerRef, innerHeight, innerWidth, radius, planar]);
 
   useEffect(() => {
+    if(graphExists && graph.printConsole === null) {
+      graph.configureConsole(printConsole);
+    }
+  }, [printConsole, graphExists, graph]);
+
+  useEffect(() => {
     let interval = null;
 
     if (graphExists && addNodes) {
@@ -60,15 +69,15 @@ export const GraphViz = ({
       graph.initializeTriangulation();
       setTriangulationBegun(true);
     }
-  }, [graph, graphExists, triangulate, triangulationBegun])
+  }, [graph, graphExists, triangulate, triangulationBegun]);
 
-  useEffect(() => { //fix console error getting generated, max update depth exceeded
+  useEffect(() => {
     let interval = null;
 
     if (graphExists && triangulate) {
       interval = setInterval(() => {
-        if (!graph.triangulateStep()) { clearInterval(interval); toggleTriangulate(); }
-      }, 3)
+        if (!graph.triangulateStep()) { clearInterval(interval); toggleTriangulate(true); }
+      }, 1)
     }
     else {
       setTriangulationBegun(false);
@@ -83,14 +92,15 @@ export const GraphViz = ({
       graph.clear();
       toggleClear();
     }
-  }, [graph, graphExists, clear, toggleClear])
+  }, [graph, graphExists, clear, toggleClear]);
 
   useEffect(() => {
-    if (graphExists && color) {
-      graph.color();
-      resetColor();
+  const finishedColoring = () => { resetColor(); setColoringStarted(false); }
+    if (graphExists && color && !coloringStarted) {
+      graph.color(finishedColoring);
+      setColoringStarted(true);
     }
-  }, [graph, graphExists, color, resetColor])
+  }, [graph, graphExists, color, resetColor, coloringStarted, setColoringStarted]);
 
   return <div data-testid="graphElement" ref={containerRef} />
 }

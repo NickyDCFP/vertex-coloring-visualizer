@@ -89,3 +89,31 @@ button:active {
 .state-button-on:active {
   background-color: #f6b8b89e;
 }
+.console, .console-error {
+  position: absolute;
+  border: 5px solid #000000;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  border-radius: 5px;
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin-top: 3px;
+  margin-right: 5px;
+  font-family: 'Courier';
+  width: 300px;
+  height: 30px;
+  word-wrap: normal;
+  font-size: 13px;
+  user-select: none;
+}
+.console {
+  color: green;
+  background-color: #e3ffe3;
+}
+.console-error {
+  color: red;
+  background-color: #ffefef;
+}
