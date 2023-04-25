@@ -2,6 +2,9 @@ import './App.css';
 import { GraphViz } from './GraphViz';
 import { useState, useCallback } from 'react';
 
+// Known bugs:
+// Edges don't properly delete after coloring
+
 // Down the road:
 // Add icon/better meta tags
 // sounds for coloring, maybe have pitches deepen as the recursion stack grows
@@ -56,10 +59,7 @@ const App = () => {
     setColor(true);
     printConsole(`Coloring...`);
   }
-  const resetColor = () => {
-    setColor(false);
-    if(!color) printConsole(`Finished coloring!`);
-  }
+  const resetColor = () => setColor(false);
   const printConsole = useCallback((message, isError = false) => {
     setConsoleMessage(message);
     setConsoleError(isError);

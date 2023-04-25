@@ -96,16 +96,16 @@ export class Graph {
     this.simulation = d3.forceSimulation(this.nodes);
     this.svg = svg;
     this.rect = this.svg.node().getBoundingClientRect();
-    this.circles = this.svg.append("g").classed("node-group", true);
-    this.circleSelection = this.circles.selectAll(".node");
+    this.circles = this.svg.append('g').classed('node-group', true);
+    this.circleSelection = this.circles.selectAll('.node');
     this.radius = radius;
-    this.lines = this.svg.append("g").classed("edge-group", true);
-    this.lineSelection = this.lines.selectAll(".edge");
+    this.lines = this.svg.append('g').classed('edge-group', true);
+    this.lineSelection = this.lines.selectAll('.edge');
     this.lines.lower();
     this.doText = doText;
-    this.text = this.svg.append("g").classed("text-group", true);
+    this.text = this.svg.append('g').classed('text-group', true);
     this.text.raise();
-    this.textSelection = this.text.selectAll(".node-label");
+    this.textSelection = this.text.selectAll('.node-label');
     // Keeps track of the node that an edge is being drawn from
     this.selectedNode = null;
     // Visual indicator for edges as they're drawn
@@ -136,40 +136,40 @@ export class Graph {
   }
   ticked() {
     this.circleSelection
-      .attr("cx", (node) => node.x)
-      .attr("cy", (node) => node.y);
+      .attr('cx', (node) => node.x)
+      .attr('cy', (node) => node.y);
     this.textSelection
-      .attr("x", (node) => node.x)
-      .attr("y", (node) => node.y + 1);
+      .attr('x', (node) => node.x)
+      .attr('y', (node) => node.y + 1);
     this.lineSelection
-      .attr("x1", (edge) => edge.source.x)
-      .attr("x2", (edge) => edge.target.x)
-      .attr("y1", (edge) => edge.source.y)
-      .attr("y2", (edge) => edge.target.y);
+      .attr('x1', (edge) => edge.source.x)
+      .attr('x2', (edge) => edge.target.x)
+      .attr('y1', (edge) => edge.source.y)
+      .attr('y2', (edge) => edge.target.y);
   }
   setUpSimulation(centerX, centerY) {
     if (!this.planar)
       this.simulation
-        .force("link", d3.forceLink(this.edges).strength(0))
-        .force("collide", d3.forceCollide().radius(30))
-        .force("x", d3.forceX().x(centerX).strength(0.2))
-        .force("y", d3.forceY().y(centerY).strength(0.2));
-    this.simulation.on("tick", () => this.ticked());
+        .force('link', d3.forceLink(this.edges).strength(0))
+        .force('collide', d3.forceCollide().radius(30))
+        .force('x', d3.forceX().x(centerX).strength(0.2))
+        .force('y', d3.forceY().y(centerY).strength(0.2));
+    this.simulation.on('tick', () => this.ticked());
     this.svg
-      .on("mouseup", (event) => this.handleMouseUp(event))
-      .on("click", (event) => this.handleClick(event))
-      .on("mousedown", (event) => this.handleMouseDown(event))
-      .style("cursor", "crosshair");
+      .on('mouseup', (event) => this.handleMouseUp(event))
+      .on('click', (event) => this.handleClick(event))
+      .on('mousedown', (event) => this.handleMouseDown(event))
+      .style('cursor', 'crosshair');
   }
   configureConsole(printConsole) {
     this.printConsole = printConsole;
   }
   handleClick(event) {
     event.stopPropagation();
-    if (event.target.tagName === "line") {
+    if (event.target.tagName === 'line') {
       const line = d3.select(event.target).datum();
       this.removeEdge(line.source, line.target);
-    } else if (event.target.tagName === "svg") {
+    } else if (event.target.tagName === 'svg') {
       if (this.createNode)
         this.addPositionNode(
           event.clientX - this.rect.x,
@@ -182,29 +182,29 @@ export class Graph {
   }
   handleMouseDown(event) {
     event.stopPropagation();
-    if (event.target.tagName === "circle") {
+    if (event.target.tagName === 'circle') {
       const node = d3.select(event.target).datum();
-      this.svg.on("mousemove", (event) => this.handleMouseMove(event));
+      this.svg.on('mousemove', (event) => this.handleMouseMove(event));
       this.potentialLine = this.svg
-        .append("line")
-        .classed("edge", true)
-        .attr("x1", node.x)
-        .attr("y1", node.y)
-        .attr("x2", node.x)
-        .attr("y2", node.y)
-        .attr("stroke", "gray")
+        .append('line')
+        .classed('edge', true)
+        .attr('x1', node.x)
+        .attr('y1', node.y)
+        .attr('x2', node.x)
+        .attr('y2', node.y)
+        .attr('stroke', 'gray')
         .lower();
       this.selectedNode = node;
     }
   }
   handleMouseUp(event) {
     event.stopPropagation();
-    this.svg.on("mousemove", null);
+    this.svg.on('mousemove', null);
     if (this.potentialLine) {
       this.potentialLine.remove();
       this.potentialLine = null;
-    } else if (event.target.tagName === "svg") this.createNode = true;
-    if (event.target.tagName === "circle") {
+    } else if (event.target.tagName === 'svg') this.createNode = true;
+    if (event.target.tagName === 'circle') {
       const node = d3.select(event.target).datum();
       if (this.selectedNode) this.addEdge(this.selectedNode.id, node.id, true);
     }
@@ -213,46 +213,93 @@ export class Graph {
   handleMouseMove(event) {
     if (this.potentialLine) {
       this.potentialLine
-        .attr("x2", event.clientX - this.rect.x)
-        .attr("y2", event.clientY - this.rect.y);
+        .attr('x2', event.clientX - this.rect.x)
+        .attr('y2', event.clientY - this.rect.y);
     }
   }
   updateNodes() {
-    const circles = this.circles.selectAll(".node").data(this.nodes);
+    const circles = this.circles.selectAll('.node').data(this.nodes);
     circles.exit().remove();
     circles
       .enter()
-      .append("circle")
-      .classed("node", true)
-      .attr("fill", (node) => this.colors[node.color])
-      .attr("r", this.radius);
+      .append('circle')
+      .classed('node', true)
+      .attr('fill', (node) => this.colors[node.color])
+      .attr('r', this.radius);
 
-    const text = this.text.selectAll(".node-label").data(this.nodes);
+    const text = this.text.selectAll('.node-label').data(this.nodes);
     text.exit().remove();
     text
       .enter()
-      .append("text")
-      .classed("node-label", true)
-      .attr("text-anchor", "middle")
-      .attr("alignment-baseline", "middle")
-      .text((node) => (this.doText ? node.id : ""));
-    this.circleSelection = this.circles.selectAll(".node");
-    this.textSelection = this.text.selectAll(".node-label");
+      .append('text')
+      .classed('node-label', true)
+      .attr('text-anchor', 'middle')
+      .attr('alignment-baseline', 'middle')
+      .text((node) => (this.doText ? node.id : ''));
+    this.circleSelection = this.circles.selectAll('.node');
+    this.textSelection = this.text.selectAll('.node-label');
+  }
+  updateNode(node, animate = false) {
+    this.circles
+      .append('circle')
+      .datum(node)
+      .classed('node', true)
+      .attr('fill', (node) => this.colors[node.color])
+      .attr('cx', (node) => node.x)
+      .attr('cy', (node) => node.y)
+      .attr('r', this.radius * 3 / 4)
+      .transition()
+      .ease(d3.easeElasticOut.amplitude(2).period(0.25))
+      .duration(animate * 1500)
+      .attr('r', this.radius);
+    this.text
+      .append('text')
+      .datum(node)
+      .classed('node-label', true)
+      .attr('text-anchor', 'middle')
+      .attr('alignment-baseline', 'middle')
+      .text((node) => (this.doText ? node.id : ''))
+      .attr('x', (node) => node.x)
+      .attr('y', (node) => node.y + 1);
+    this.circleSelection = this.circles.selectAll('.node');
+    this.textSelection = this.text.selectAll('.node-label');
+    this.circleSelection.enter();
+    this.textSelection.enter();
   }
   updateEdges() {
-    if (!this.planar) this.simulation.force("link", d3.forceLink(this.edges));
-    const lines = this.lines.selectAll(".edge").data(this.edges);
+    if (!this.planar) this.simulation.force('link', d3.forceLink(this.edges));
+    const lines = this.lines.selectAll('.edge').data(this.edges);
     lines.exit().remove();
     lines
       .enter()
-      .append("line")
-      .classed("edge", true)
-      .on("mouseover", (event) => {
+      .append('line')
+      .classed('edge', true)
+      .on('mouseover', (event) => {
         d3.select(event.currentTarget).raise();
       })
       .lower();
-    this.lineSelection = this.lines.selectAll(".edge");
-    this.simulation.alpha(0.2).restart();
+    this.lineSelection = this.lines.selectAll('.edge');
+  }
+  updateEdge(edge, animate = false) {
+    if (!this.planar) this.simulation.force('link', d3.forceLink(this.edges));
+    this.lines
+      .append('line')
+      .datum(edge)
+      .classed('edge', true)
+      .on('mouseover', (event) => { d3.select(event.currentTarget).raise(); })
+      .lower()
+      .attr('x1', (edge) => edge.source.x)
+      .attr('x2', (edge) => edge.source.x)
+      .attr('y1', (edge) => edge.source.y)
+      .attr('y2', (edge) => edge.source.y)
+      .transition()
+      .duration(animate * 200)
+      .attr('x1', (edge) => edge.source.x)
+      .attr('x2', (edge) => edge.target.x)
+      .attr('y1', (edge) => edge.source.y)
+      .attr('y2', (edge) => edge.target.y);
+    this.lineSelection = this.lines.selectAll('.edge');
+    this.lineSelection.enter();
   }
   // Nodes shouldn't spawn over other nodes or edges
   checkNodeOverlap(x, y) {
@@ -303,7 +350,7 @@ export class Graph {
     let failedAttempts = 0;
     if (this.planar)
       while (
-        failedAttempts < 1000 &&
+        failedAttempts < 100 &&
         !this.addPositionNode(
           Math.random() * this.rect.width,
           Math.random() * this.rect.height
@@ -320,8 +367,8 @@ export class Graph {
     const node = { id: this.v, color: 0, x, y };
     this.nodes.push(node);
     this.adj[this.v++] = { node, neighbors: [] };
-    this.simulation.nodes(this.nodes).alpha(0.2).restart();
-    this.updateNodes();
+    this.simulation.nodes(this.nodes);
+    this.updateNode(node, this.planar);
     return true;
   }
   reintroduceNode(adjReference) {
@@ -330,8 +377,12 @@ export class Graph {
     adjReference.neighbors = [];
     this.adj[node.id] = adjReference;
     this.nodes.push(node);
-    for (const neighbor of neighbors) this.addEdge(node.id, neighbor);
-    this.updateNodes();
+    for (const neighbor of neighbors) this.addEdge(node.id, neighbor, false, true);
+    this.coloringQueue.push({
+      'func': this.updateNode,
+      'params': [node],
+      'self': true
+    });
     this.updateEdges();
   }
   // Ensure there are no edge crossings and the edge doesn't pass through a node
@@ -366,7 +417,7 @@ export class Graph {
     }
     return true;
   }
-  addEdge(source, target, warn = false) {
+  addEdge(source, target, warn = false, delay = false) {
     const source_adj = this.adj[source];
     const target_adj = this.adj[target];
     if (
@@ -378,8 +429,15 @@ export class Graph {
       return false;
     source_adj.neighbors.push(target);
     target_adj.neighbors.push(source);
-    this.edges.push({ source: source_adj.node, target: target_adj.node });
-    this.updateEdges();
+    const edge = { source: source_adj.node, target: target_adj.node };
+    this.edges.push(edge);
+    if (delay)
+      this.coloringQueue.push({
+        'func': this.updateEdge,
+        'params': [edge, true],
+        'self': true
+      })
+    else this.updateEdge(edge, this.planar && !warn);
     return true;
   }
   initializeTriangulation() {
@@ -436,7 +494,12 @@ export class Graph {
     this.updateEdges();
   }
   coloringStep(interval, resetColor) {
-    if (this.coloringQueue.length === 0) { clearInterval(interval); resetColor(); }
+    if (this.coloringQueue.length === 0) {
+      clearInterval(interval);
+      resetColor();
+      this.updateNodes();
+      this.updateEdges();
+    }
     const step = this.coloringQueue.shift();
     if (step === undefined) return;
     if (step['self']) step['func'].call(this, ...step['params']);
@@ -448,7 +511,7 @@ export class Graph {
   }
   color(resetColor) {
     if (!this.planar) return;
-    for(const node of this.nodes) node.color = 0;
+    for (const node of this.nodes) node.color = 0;
     const vertexHeap = new Heap((a, b) => a.degree - b.degree); // min-heap
     const heapPointers = {};
     for (const id in this.adj) {
@@ -505,11 +568,6 @@ export class Graph {
   }
   impasse(vertex) {
     this.coloringQueue.push({
-      'func': this.updateColor,
-      'params': [vertex, 'red', 0],
-      'self': true
-    });
-    this.coloringQueue.push({
       'func': this.printConsole,
       'params': [`Impasse at node ${vertex}...`, true],
       'self': false
@@ -524,6 +582,11 @@ export class Graph {
       const neighborColor = this.adj[neighbor].node.color;
       let freeColors = [1, 2, 3, 4].filter(color => color !== neighborColor);
       for (const color of freeColors) {
+        this.coloringQueue.push({
+          'func': this.updateColor,
+          'params': [vertex, 'red', 0],
+          'self': true
+        });
         ++interchanges;
         this.interchange(neighbor, color);
         if (this.triviallyColor(vertex, true)) {

@@ -20,9 +20,9 @@ export const GraphViz = ({
   const [svg, setSvg] = useState(null);
   const [graph, setGraph] = useState(null);
   const [graphExists, setGraphExists] = useState(false);
-  const [triangulationBegun, setTriangulationBegun] = useState(false);
+  const [nodeInterval, setNodeInterval] = useState(null);
+  const [triangulateInterval, setTriangulateInterval] = useState(null);
   const [coloringStarted, setColoringStarted] = useState(false);
-
 
   useEffect(() => {
     setSvg(d3.select(containerRef.current)
@@ -44,63 +44,64 @@ export const GraphViz = ({
   }, [svg, containerRef, innerHeight, innerWidth, radius, planar]);
 
   useEffect(() => {
-    if(graphExists && graph.printConsole === null) {
+    if (graphExists && graph.printConsole === null) {
       graph.configureConsole(printConsole);
     }
   }, [printConsole, graphExists, graph]);
 
   useEffect(() => {
-    let interval = null;
-
-    if (graphExists && addNodes) {
-      interval = setInterval(() => {
-        if (!graph.addNode()) graph.addNode()
-      }, 50);
+    if (graphExists && addNodes && !nodeInterval) {
+      setNodeInterval(setInterval(() => {
+        graph.addNode();
+      }, 30));
     }
-    else {
-      clearInterval(interval);
+    else if (!addNodes) {
+      clearInterval(nodeInterval);
+      setNodeInterval(null);
     }
-
-    return () => clearInterval(interval);
-  }, [addNodes, graph, graphExists]);
+  }, [addNodes, graph, graphExists, nodeInterval, setNodeInterval]);
 
   useEffect(() => {
-    if (triangulate && graphExists && !triangulationBegun) {
+    if (graphExists && triangulate && !triangulateInterval) {
       graph.initializeTriangulation();
-      setTriangulationBegun(true);
+      setTriangulateInterval(setInterval(() => {
+        if (clear || !graph.triangulateStep()) { toggleTriangulate(true); }
+      }, 1));
     }
-  }, [graph, graphExists, triangulate, triangulationBegun]);
-
-  useEffect(() => {
-    let interval = null;
-
-    if (graphExists && triangulate) {
-      interval = setInterval(() => {
-        if (!graph.triangulateStep()) { clearInterval(interval); toggleTriangulate(true); }
-      }, 1)
+    else if (!triangulate) {
+      clearInterval(triangulateInterval);
+      setTriangulateInterval(null);
     }
-    else {
-      setTriangulationBegun(false);
-      clearInterval(interval);
-    }
-
-    return () => clearInterval(interval);
-  }, [triangulate, graph, graphExists, toggleTriangulate]);
+  },  [
+        triangulate,
+        clear,
+        graph,
+        graphExists,
+        toggleTriangulate,
+        triangulateInterval,
+        setTriangulateInterval
+      ]);
 
   useEffect(() => {
     if (graphExists && clear) {
       graph.clear();
       toggleClear();
+      clearInterval(triangulateInterval);
+      if(triangulate) toggleTriangulate();
+      setTriangulateInterval(null);
     }
-  }, [graph, graphExists, clear, toggleClear]);
+  }, [graph, graphExists, clear, toggleClear, triangulateInterval, toggleTriangulate, triangulate]);
 
   useEffect(() => {
-  const finishedColoring = () => { resetColor(); setColoringStarted(false); }
     if (graphExists && color && !coloringStarted) {
-      graph.color(finishedColoring);
+      graph.color(resetColor);
       setColoringStarted(true);
     }
-  }, [graph, graphExists, color, resetColor, coloringStarted, setColoringStarted]);
+    else if(!color && coloringStarted) {
+      setColoringStarted(false);
+      printConsole('Finished coloring!');
+    }
+  },  [graph, graphExists, color, resetColor, coloringStarted, setColoringStarted]);
 
   return <div data-testid="graphElement" ref={containerRef} />
 }
