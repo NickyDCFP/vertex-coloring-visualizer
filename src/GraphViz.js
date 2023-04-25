@@ -101,7 +101,7 @@ export const GraphViz = ({
       setColoringStarted(false);
       printConsole('Finished coloring!');
     }
-  },  [graph, graphExists, color, resetColor, coloringStarted, setColoringStarted]);
+  },  [graph, graphExists, color, resetColor, coloringStarted, setColoringStarted, printConsole]);
 
   return <div data-testid="graphElement" ref={containerRef} />
 }

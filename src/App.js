@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 
 // Known bugs:
 // Edges don't properly delete after coloring
+// (ghost edges, can still be caught by planarity checks but aren't visible)
 
 // Down the road:
 // Add icon/better meta tags
