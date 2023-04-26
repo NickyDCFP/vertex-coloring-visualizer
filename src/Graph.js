@@ -4,6 +4,9 @@ import Queue from 'queue';
 
 const maxKempeInterchanges = 100;
 
+// pull out the svg listener setup into its own method so you can temporarily quiet them
+// during colorings
+
 
 // Checks to see if two edges are the same
 const edgeEquals = (edge1, edge2) =>
@@ -367,7 +370,8 @@ export class Graph {
     const node = { id: this.v, color: 0, x, y };
     this.nodes.push(node);
     this.adj[this.v++] = { node, neighbors: [] };
-    this.simulation.nodes(this.nodes);
+    if(this.planar) this.simulation.nodes(this.nodes);
+    else this.simulation.nodes(this.nodes).alpha(0.2).restart();
     this.updateNode(node, this.planar);
     return true;
   }
