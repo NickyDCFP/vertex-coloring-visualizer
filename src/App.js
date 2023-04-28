@@ -17,7 +17,6 @@ import { useState, useCallback } from 'react';
   // allow user to "step back" and "step back to the most interesting step recently"
   // mention limitations: this generates plane graphs, not planar graphs
     // you can technically draw any planar graph in the plane with straight edges
-  // make the colors more distinctive
 
 const innerHeight = window.innerHeight;
 const innerWidth = window.innerWidth;
