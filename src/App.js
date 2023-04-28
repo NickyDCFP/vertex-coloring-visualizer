@@ -3,7 +3,7 @@ import { GraphViz } from './GraphViz';
 import { useState, useCallback } from 'react';
 
 // Known bugs:
-  // Edges don't properly delete after coloring
+  // Edges don't properly delete
   // (ghost edges, can still be caught by planarity checks but aren't visible)
 
 // Down the road:
@@ -13,7 +13,6 @@ import { useState, useCallback } from 'react';
 
 // to alter:
   // allow user to move nodes --> click on a menu and they can move or remove 
-  // instead of "triangulate" have something like "make a dense plane graph"
   // allow user to "step back" and "step back to the most interesting step recently"
   // mention limitations: this generates plane graphs, not planar graphs
     // you can technically draw any planar graph in the plane with straight edges
@@ -49,9 +48,9 @@ const App = () => {
   const toggleTriangulate = (finished = false) => {
     setTriangulate(!triangulate);
     let message;
-    if (!triangulate) message = planarity ? `Triangulating...` : `Completing...`;
-    else if (finished === true) message = `Finished ${planarity ? `triangulating` : `completing`}!`;
-    else message = `Stopped ${planarity ? `triangulating` : `completing`}.`;
+    if (!triangulate) message = planarity ? `Connecting...` : `Completing...`;
+    else if (finished === true) message = `Finished ${planarity ? `connecting` : `completing`}!`;
+    else message = `Stopped ${planarity ? `connecting` : `completing`}.`;
     printConsole(message);
   }
   const toggleClear = () => {
@@ -82,7 +81,7 @@ const App = () => {
         <button
           onClick={() => toggleTriangulate(false)}
           className={`state-button-${triangulate ? `on` : `off`}`}
-        >{planarity ? (triangulate ? `Stop` : `Triangulate`) :
+        >{planarity ? (triangulate ? `Stop` : `Connect`) :
           (triangulate ? `Stop` : `Complete`)}</button>
         <button
           onClick={toggleClear}
