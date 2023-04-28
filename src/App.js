@@ -21,11 +21,11 @@ import { useState, useCallback } from 'react';
 
 const innerHeight = window.innerHeight;
 const innerWidth = window.innerWidth;
-const defaultConsoleMessage = 'Welcome! Please swap to Planar mode for vertex coloring!';
+const defaultConsoleMessage = `Add nodes and edges for a more complex graph. Let's color!`;
 
 
 const App = () => {
-  const [planarity, setPlanarity] = useState(false);
+  const [planarity, setPlanarity] = useState(true);
   const [addNodes, setAddNodes] = useState(false);
   const [triangulate, setTriangulate] = useState(false);
   const [clear, setClear] = useState(false);
@@ -36,9 +36,8 @@ const App = () => {
   const togglePlanarity = () => {
     setPlanarity(!planarity);
     let message;
-    if (!planarity) message = `Planar! Add nodes and triangulate for a more complex graph.
-                              Let's color!`;
-    else message = 'Non-planar!';
+    if (!planarity) message = `Planar!`;
+    else message = 'Non-planar! (Just for fun, no coloring here!)';
     printConsole(message);
   }
   const toggleAddNodes = () => {
