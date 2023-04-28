@@ -3,17 +3,21 @@ import { GraphViz } from './GraphViz';
 import { useState, useCallback } from 'react';
 
 // Known bugs:
-// Edges don't properly delete after coloring
-// (ghost edges, can still be caught by planarity checks but aren't visible)
+  // Edges don't properly delete after coloring
+  // (ghost edges, can still be caught by planarity checks but aren't visible)
 
 // Down the road:
-// Add icon/better meta tags
-// sounds for coloring, maybe have pitches deepen as the recursion stack grows
-// add nice animations for edge triangulation and coloring
-// control stuff with react dropdowns
+  // Add icon/better meta tags
+  // sounds for coloring, maybe have pitches deepen as the recursion stack grows
+  // control stuff with react dropdowns
 
-// things to ask aloupis about:
-// curved edges necessary? the internal graph can be sufficiently complex, i'm sure
+// to alter:
+  // allow user to move nodes --> click on a menu and they can move or remove 
+  // instead of "triangulate" have something like "make a dense plane graph"
+  // allow user to "step back" and "step back to the most interesting step recently"
+  // mention limitations: this generates plane graphs, not planar graphs
+    // you can technically draw any planar graph in the plane with straight edges
+  // make the colors more distinctive
 
 const innerHeight = window.innerHeight;
 const innerWidth = window.innerWidth;

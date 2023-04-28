@@ -402,7 +402,7 @@ export class Graph {
       };
       if (intersect2d(line1, line2)) {
         if (warn) this.printConsole(
-          'Oops, that edge crosses another edge, violating planarity!',
+          'Oops, that edge crosses another edge, violating the plane embedding!',
           true
         );
         return false;
@@ -415,7 +415,7 @@ export class Graph {
         this.radius + this.nodeEdgePadding
       ) {
         if (warn) this.printConsole(`Oops, that edge is too close to a node!
-                                    (this check keeps the graph looking clean)`);
+                                    (for visual clarity)`, true);
         return false;
       }
     }
