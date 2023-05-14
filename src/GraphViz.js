@@ -34,7 +34,7 @@ export const GraphViz = ({
 
   useEffect(() => {
     if (svg) {
-      const colors = ['#45d097', '#f7a4a3', '#f6b656', '#42a5b3', '#b396ad', 'black'];
+      const colors = ['#45d097', '#f7a4a3', '#f6b656', '#42a5b3', '#b396ad', 'white'];
       svg.selectAll('*').remove();
       const centerX = innerWidth / 2;
       const centerY = innerHeight / 2;

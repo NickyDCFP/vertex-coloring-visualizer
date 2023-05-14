@@ -2,7 +2,8 @@ import * as d3 from 'd3';
 import Heap from 'heap';
 import Queue from 'queue';
 
-const maxKempeInterchanges = 100;
+const DEFAULTMAXKEMPEINTERCHANGES = 100;
+const DEFAULTMAXVISITWANDER = 2;
 
 // pull out the svg listener setup into its own method so you can temporarily quiet them
 // during colorings
@@ -128,6 +129,7 @@ export class Graph {
     // Queue of functions to be called regularly during coloring
     this.coloringQueue = new Queue();
     this.coloringSpeed = coloringSpeed;
+    this.wander_visited = {};
     this.setUpSimulation(centerX, centerY);
     for (let i = 0; i < 5; ++i) this.addNode();
     for (let i = 0; i < 5; ++i)
@@ -515,6 +517,8 @@ export class Graph {
   }
   color(resetColor) {
     if (!this.planar) return;
+    this.wander_visited = {};
+    for (const id in this.adj) this.wander_visited[id] = 0;
     for (const node of this.nodes) node.color = 0;
     const vertexHeap = new Heap((a, b) => a.degree - b.degree); // min-heap
     const heapPointers = {};
@@ -576,9 +580,9 @@ export class Graph {
       'params': [`Impasse at node ${vertex}...`, true],
       'self': false
     });
-    return this.kempe(vertex);
+    return this.wander(vertex);
   }
-  kempe(vertex) {
+  kempe(vertex, maxKempeInterchanges = DEFAULTMAXKEMPEINTERCHANGES) {
     const randomizedNeighbors = [...this.adj[vertex].neighbors].sort(() => Math.random() - 0.5);
     let interchanges = 0;
     for (const neighbor of randomizedNeighbors) {
@@ -606,7 +610,6 @@ export class Graph {
     }
     return false;
   }
-
   // Iterative DFS to avoid stack overflows
   interchange(vertex, color) {
     let visited = {};
@@ -622,15 +625,87 @@ export class Graph {
           nextVertices.push([neighbor, v_color]);
     }
   }
-
-  /*
-  interchange(vertex, color, visited) {
-    const v_color = this.adj[vertex].node.color;
-    this.recolor(vertex, color, 'black');
-    for(const neighbor of this.adj[vertex].neighbors) {
-      if(!visited[neighbor] && this.adj[neighbor].node.color === color) 
-        this.interchange(neighbor, v_color, visited);
+  wander(vertex, T = DEFAULTMAXVISITWANDER) {
+    this.wander_visited[vertex] = 1;
+    this.recolor(vertex, 5, 'red');
+    let success = this.wander_helper(vertex, vertex, T);
+    this.wander_visited[vertex] = 0;
+    if(success) {
+      this.coloringQueue.push({
+        'func': this.printConsole,
+        'params': [`Impasse wandered away!`],
+        'self': false
+      });
     }
+    else {
+      this.coloringQueue.push({
+        'func': this.printConsole,
+        'params': [`Failed to wander impasse at node ${vertex}`, true],
+        'self': false
+      });
+    }
+    return success;
   }
-  */
+  wander_helper(vertex, parent, T) {
+    if(this.wander_visited[vertex] >= T) return false;
+    ++this.wander_visited[vertex];
+    const colorUnique = [-2, -1, -1, -1, -1];
+    for(const neighbor of this.adj[vertex].neighbors) {
+      const neighborColor = this.adj[neighbor].node.color;
+      if(colorUnique[neighborColor] === -1) colorUnique[neighborColor] = neighbor;
+      else colorUnique[neighborColor] = -2;
+    }
+    for(const uniqueNeighbor of colorUnique) {
+      if(uniqueNeighbor < 0 || uniqueNeighbor === parent) continue;
+      if(this.tryColorNeighbor(vertex, uniqueNeighbor)) return true;
+    }
+    let success = false;
+    for(const uniqueNeighbor of colorUnique) {
+      if(uniqueNeighbor < 0 || uniqueNeighbor === parent) continue;
+      ++this.wander_visited[uniqueNeighbor];
+      success |= this.wander_helper(uniqueNeighbor, T);
+      if(success) return true;
+      --this.wander_visited[uniqueNeighbor];
+    }
+    return false;
+  }
+  tryColorNeighbor(vertex, uniqueNeighbor) {
+    [
+      this.adj[vertex].node.color,
+      this.adj[uniqueNeighbor].node.color
+    ] = 
+      [
+        this.adj[uniqueNeighbor].node.color,
+        this.adj[vertex].node.color
+      ]; // swap colors with neighbor
+    this.coloringQueue.push({
+      'func': this.updateColor,
+      'params': [vertex, 'black', undefined],
+      'self': true
+    });
+    this.coloringQueue.push({
+      'func': this.updateColor,
+      'params': [uniqueNeighbor, 'black', undefined],
+      'self': true
+    });
+    if(this.triviallyColor(uniqueNeighbor, true)) return true;
+    [
+      this.adj[vertex].node.color,
+      this.adj[uniqueNeighbor].node.color
+    ] = 
+      [
+        this.adj[uniqueNeighbor].node.color,
+        this.adj[vertex].node.color
+      ]; // swap colors with neighbor
+    this.coloringQueue.push({
+      'func': this.updateColor,
+      'params': [vertex, 'black', undefined],
+      'self': true
+    });
+    this.coloringQueue.push({
+      'func': this.updateColor,
+      'params': [uniqueNeighbor, 'black', undefined],
+      'self': true
+    });
+  }
 }

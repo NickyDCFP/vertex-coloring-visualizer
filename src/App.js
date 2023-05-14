@@ -1,9 +1,10 @@
 import './App.css';
 import { GraphViz } from './GraphViz';
-import { useState, useCallback } from 'react';
+import { Navbar } from './Navbar';
+import { useSetupStates } from './useSetupStates';
 
 // Known bugs:
-  // Edges don't properly delete
+  // Edges don't properly delete after coloring
   // (ghost edges, can still be caught by planarity checks but aren't visible)
 
 // Down the road:
@@ -13,7 +14,7 @@ import { useState, useCallback } from 'react';
 
 // to alter:
   // allow user to move nodes --> click on a menu and they can move or remove 
-  // allow user to "step back" and "step back to the most interesting step recently"
+  // once explanations are in -- allow user to "step back" and "step back to the most interesting step recently"
   // mention limitations: this generates plane graphs, not planar graphs
     // you can technically draw any planar graph in the plane with straight edges
 
@@ -21,79 +22,39 @@ const innerHeight = window.innerHeight;
 const innerWidth = window.innerWidth;
 const defaultConsoleMessage = `Add nodes and edges for a more complex graph. Let's color!`;
 
-
 const App = () => {
-  const [planarity, setPlanarity] = useState(true);
-  const [addNodes, setAddNodes] = useState(false);
-  const [triangulate, setTriangulate] = useState(false);
-  const [clear, setClear] = useState(false);
-  const [color, setColor] = useState(false);
-  const [consoleMessage, setConsoleMessage] = useState(defaultConsoleMessage);
-  const [consoleError, setConsoleError] = useState(false);
-
-  const togglePlanarity = () => {
-    setPlanarity(!planarity);
-    let message;
-    if (!planarity) message = `Planar!`;
-    else message = 'Non-planar! (Just for fun, no coloring here!)';
-    printConsole(message);
-  }
-  const toggleAddNodes = () => {
-    setAddNodes(!addNodes);
-    let message;
-    if (!addNodes) message = `Adding nodes... Please stop this manually.`;
-    else message = `Stopped adding nodes.`;
-    printConsole(message);
-  }
-  const toggleTriangulate = (finished = false) => {
-    setTriangulate(!triangulate);
-    let message;
-    if (!triangulate) message = planarity ? `Connecting...` : `Completing...`;
-    else if (finished === true) message = `Finished ${planarity ? `connecting` : `completing`}!`;
-    else message = `Stopped ${planarity ? `connecting` : `completing`}.`;
-    printConsole(message);
-  }
-  const toggleClear = () => {
-    setClear(!clear);
-    if(!clear) printConsole(`Cleared!`);
-  }
-  const startColor = () => {
-    setColor(true);
-    printConsole(`Coloring...`);
-  }
-  const resetColor = () => setColor(false);
-  const printConsole = useCallback((message, isError = false) => {
-    setConsoleMessage(message);
-    setConsoleError(isError);
-  }, []);
-
+  const [
+    planarity,
+    togglePlanarity,
+    addNodes,
+    toggleAddNodes,
+    triangulate,
+    toggleTriangulate,
+    clear,
+    toggleClear,
+    color,
+    startColor,
+    resetColor,
+    consoleMessage,
+    consoleError,
+    printConsole,
+  ] = useSetupStates(defaultConsoleMessage);
   return (
     <>
-      <div className="user-interface">
-        <button
-          onClick={togglePlanarity}
-          className="toggle-button"
-        >{planarity ? 'Non-Planar' : 'Planar'}</button>
-        <button
-          onClick={toggleAddNodes}
-          className={`state-button-${addNodes ? `on` : `off`}`}
-        >{addNodes ? 'Stop' : 'Add Nodes'}</button>
-        <button
-          onClick={() => toggleTriangulate(false)}
-          className={`state-button-${triangulate ? `on` : `off`}`}
-        >{planarity ? (triangulate ? `Stop` : `Connect`) :
-          (triangulate ? `Stop` : `Complete`)}</button>
-        <button
-          onClick={toggleClear}
-          className="toggle-button"
-        >{clear ? `Clearing` : `Clear`}</button>
-        {planarity ?
-          <button
-            onClick={startColor}
-            className="toggle-button"
-          >{color ? `Coloring` : `Color`}</button> : null}
-        <div className={`console${consoleError ? `-error` : ``}`}>{consoleMessage}</div>
-      </div>
+      <Navbar
+        togglePlanarity={togglePlanarity}
+        planarity={planarity}
+        toggleAddNodes={toggleAddNodes}
+        addNodes={addNodes}
+        toggleTriangulate={toggleTriangulate}
+        triangulate={triangulate}
+        toggleClear={toggleClear}
+        clear={clear}
+        startColor={startColor}
+        color={color}
+        consoleError={consoleError}
+        consoleMessage={consoleMessage}
+      />
       <GraphViz
         innerHeight={innerHeight}
         innerWidth={innerWidth}
