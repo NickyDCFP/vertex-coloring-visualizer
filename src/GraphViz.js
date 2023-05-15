@@ -15,6 +15,8 @@ export const GraphViz = ({
   toggleClear,
   color,
   resetColor,
+  firstResolutionHeuristic,
+  orderingHeuristic,
 }) => {
   const containerRef = useRef(null);
   const [svg, setSvg] = useState(null);
@@ -93,15 +95,25 @@ export const GraphViz = ({
   }, [graph, graphExists, clear, toggleClear, triangulateInterval, toggleTriangulate, triangulate]);
 
   useEffect(() => {
-    if (graphExists && color && !coloringStarted) {
-      graph.color(resetColor);
+    if (graphExists && color && !coloringStarted && firstResolutionHeuristic && orderingHeuristic) {
+      graph.color(resetColor, firstResolutionHeuristic.value, orderingHeuristic.value);
       setColoringStarted(true);
     }
     else if(!color && coloringStarted) {
       setColoringStarted(false);
       printConsole('Finished coloring!');
     }
-  },  [graph, graphExists, color, resetColor, coloringStarted, setColoringStarted, printConsole]);
+  },  [
+    graph,
+    graphExists,
+    color,
+    resetColor,
+    coloringStarted,
+    setColoringStarted,
+    printConsole,
+    firstResolutionHeuristic,
+    orderingHeuristic,
+  ]);
 
   return <div data-testid="graphElement" ref={containerRef} />
 }

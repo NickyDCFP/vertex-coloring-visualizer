@@ -1,6 +1,7 @@
 import './App.css';
 import { GraphViz } from './GraphViz';
 import { Navbar } from './Navbar';
+import { ColoringNavbar } from './ColoringNavbar'
 import { useSetupStates } from './useSetupStates';
 
 // Known bugs:
@@ -10,7 +11,6 @@ import { useSetupStates } from './useSetupStates';
 // Down the road:
   // Add icon/better meta tags
   // sounds for coloring, maybe have pitches deepen as the recursion stack grows
-  // control stuff with react dropdowns
 
 // to alter:
   // allow user to move nodes --> click on a menu and they can move or remove 
@@ -20,7 +20,6 @@ import { useSetupStates } from './useSetupStates';
 
 const innerHeight = window.innerHeight;
 const innerWidth = window.innerWidth;
-const defaultConsoleMessage = `Add nodes and edges for a more complex graph. Let's color!`;
 
 const App = () => {
   const [
@@ -38,23 +37,40 @@ const App = () => {
     consoleMessage,
     consoleError,
     printConsole,
-  ] = useSetupStates(defaultConsoleMessage);
+    firstResolutionHeuristic,
+    setFirstResolutionHeuristic,
+    defaultNavbar,
+    toggleNavbar,
+    orderingHeuristic,
+    setOrderingHeuristic
+  ] = useSetupStates();
   return (
     <>
-      <Navbar
-        togglePlanarity={togglePlanarity}
-        planarity={planarity}
-        toggleAddNodes={toggleAddNodes}
-        addNodes={addNodes}
-        toggleTriangulate={toggleTriangulate}
-        triangulate={triangulate}
-        toggleClear={toggleClear}
-        clear={clear}
-        startColor={startColor}
-        color={color}
-        consoleError={consoleError}
-        consoleMessage={consoleMessage}
-      />
+      {defaultNavbar ? 
+        <Navbar
+          togglePlanarity={togglePlanarity}
+          planarity={planarity}
+          toggleAddNodes={toggleAddNodes}
+          addNodes={addNodes}
+          toggleTriangulate={toggleTriangulate}
+          triangulate={triangulate}
+          toggleClear={toggleClear}
+          clear={clear}
+          consoleError={consoleError}
+          consoleMessage={consoleMessage}
+          toggleNavbar={toggleNavbar}
+        /> :
+        <ColoringNavbar
+          firstResolutionHeuristic={firstResolutionHeuristic}
+          setFirstResolutionHeuristic={setFirstResolutionHeuristic}
+          orderingHeuristic={orderingHeuristic}
+          setOrderingHeuristic={setOrderingHeuristic}
+          consoleError={consoleError}
+          consoleMessage={consoleMessage}
+          toggleNavbar={toggleNavbar}
+          startColor={startColor}
+          color={color}
+        />}
       <GraphViz
         innerHeight={innerHeight}
         innerWidth={innerWidth}
@@ -68,6 +84,8 @@ const App = () => {
         toggleClear={toggleClear}
         color={color}
         resetColor={resetColor}
+        firstResolutionHeuristic={firstResolutionHeuristic}
+        orderingHeuristic={orderingHeuristic}
       />
     </>
   );

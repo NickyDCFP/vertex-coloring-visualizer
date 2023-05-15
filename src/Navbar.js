@@ -7,10 +7,9 @@ export const Navbar = ({
     triangulate,
     toggleClear,
     clear,
-    startColor,
-    color,
     consoleError,
-    consoleMessage
+    consoleMessage,
+    toggleNavbar,
   }) => 
     <div className="user-interface">
       <button
@@ -32,8 +31,8 @@ export const Navbar = ({
       >{clear ? `Clearing` : `Clear`}</button>
       {planarity ?
         <button
-          onClick={startColor}
+          onClick={toggleNavbar}
           className="toggle-button"
-        >{color ? `Coloring` : `Color`}</button> : null}
+        >Color</button> : null}
       <div className={`console${consoleError ? `-error` : ``}`}>{consoleMessage}</div>
     </div>

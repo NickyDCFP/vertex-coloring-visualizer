@@ -515,16 +515,65 @@ export class Graph {
     let interval = setTimeout(() => // Delay so the interval can compute before we pass it
       setInterval(() => this.coloringStep(interval, resetColor), this.coloringSpeed), 0);
   }
-  color(resetColor) {
+  color(resetColor, firstResolutionHeuristic, orderingHeuristic) {
     if (!this.planar) return;
     this.wander_visited = {};
     for (const id in this.adj) this.wander_visited[id] = 0;
+    let wasColored = this.nodes[0].color !== 0;
     for (const node of this.nodes) node.color = 0;
+    if(orderingHeuristic === "Smallest-Last") {
+      this.slOrder();
+      while (this.smallestLast.length > 0) {
+        const adjReference = this.smallestLast.pop();
+        this.reintroduceNode(adjReference);
+        if (!this.triviallyColor(adjReference.node.id) &&
+            !this.impasse(adjReference.node.id, firstResolutionHeuristic)) break;
+      }
+    }
+    else {
+      if(wasColored) {
+        this.printConsole('Resetting colors...');
+        this.circleSelection
+          .transition()
+          .duration(200)
+          .attr('fill', '#ffffff')
+          .attr('r', this.radius + 5)
+          .transition()
+          .duration(600)
+          .attr('r', this.radius)
+          .attr('fill', this.colors[0]);
+      }
+      const satHeap = new Heap((a, b) => {
+        if(a.sat !== b.sat) return b.sat - a.sat;
+        return b.uncolored - a.uncolored;
+      });
+      const heapPointers = {};
+      for (const id in this.adj) {
+        heapPointers[id] = satHeap.push({
+          id,
+          sat: 0,
+          uncolored: this.adj[id].neighbors.length
+        });
+      }
+      while(!satHeap.empty()) {
+        const vertex = satHeap.pop();
+        if (!this.triviallyColor(this.adj[vertex.id].node.id) &&
+            !this.impasse(this.adj[vertex.id].node.id, firstResolutionHeuristic)) break;
+        for(const neighbor of this.adj[vertex.id].neighbors) {
+          ++heapPointers[neighbor].sat;
+          --heapPointers[neighbor].uncolored;
+          satHeap.updateItem(heapPointers[neighbor]);
+        }
+      }
+    }
+    if(wasColored) setTimeout(() => this.exhaustQueue(resetColor), 1000);
+    else this.exhaustQueue(resetColor);
+  }
+  slOrder() {
     const vertexHeap = new Heap((a, b) => a.degree - b.degree); // min-heap
     const heapPointers = {};
-    for (const id in this.adj) {
+    for (const id in this.adj)
       heapPointers[id] = vertexHeap.push({ id, degree: this.adj[id].neighbors.length });
-    }
     while (!vertexHeap.empty()) {
       const vertex = vertexHeap.pop();
       for (const neighbor of this.adj[vertex.id].neighbors) {
@@ -533,17 +582,8 @@ export class Graph {
       }
       this.smallestLast.push(this.removeNode(vertex.id));
     }
-    while (this.smallestLast.length > 0) {
-      const adjReference = this.smallestLast.pop();
-      this.reintroduceNode(adjReference);
-      if (!this.triviallyColor(adjReference.node.id)) {
-        if (!this.impasse(adjReference.node.id)) break;
-      }
-    }
-    this.exhaustQueue(resetColor);
   }
-  updateColor(vertex, transitionColor = '#ffffff', finalColor = this.adj[vertex].node.color
-  ) {
+  updateColor(vertex, transitionColor = '#ffffff', finalColor = this.adj[vertex].node.color) {
     this.circleSelection
       .filter(d => d.id === vertex)
       .transition()
@@ -574,13 +614,16 @@ export class Graph {
     this.recolor(vertex, freeColors[Math.floor(Math.random() * freeColors.length)], transitionColor);
     return true;
   }
-  impasse(vertex) {
+  impasse(vertex, firstResolutionHeuristic) {
     this.coloringQueue.push({
       'func': this.printConsole,
       'params': [`Impasse at node ${vertex}...`, true],
       'self': false
     });
-    return this.wander(vertex);
+    const [heur1, heur2] = (firstResolutionHeuristic === "Kempe" ? [this.kempe, this.wander] :
+                                                                   [this.wander, this.kempe]);
+    if(!heur1.call(this, vertex)) return heur2.call(this, vertex);
+    return true;
   }
   kempe(vertex, maxKempeInterchanges = DEFAULTMAXKEMPEINTERCHANGES) {
     const randomizedNeighbors = [...this.adj[vertex].neighbors].sort(() => Math.random() - 0.5);
@@ -640,13 +683,15 @@ export class Graph {
     else {
       this.coloringQueue.push({
         'func': this.printConsole,
-        'params': [`Failed to wander impasse at node ${vertex}`, true],
+        'params': [`Failed to wander impasse at node ${vertex}...`, true],
         'self': false
       });
+      this.recolor(vertex, 0, 'red');
     }
     return success;
   }
   wander_helper(vertex, parent, T) {
+    console.log(this.adj[vertex].node.color);
     if(this.wander_visited[vertex] >= T) return false;
     ++this.wander_visited[vertex];
     const colorUnique = [-2, -1, -1, -1, -1];
@@ -663,48 +708,37 @@ export class Graph {
     for(const uniqueNeighbor of colorUnique) {
       if(uniqueNeighbor < 0 || uniqueNeighbor === parent) continue;
       ++this.wander_visited[uniqueNeighbor];
-      success |= this.wander_helper(uniqueNeighbor, T);
+      this.swapColors(vertex, uniqueNeighbor);
+      success |= this.wander_helper(uniqueNeighbor, vertex, T);
       if(success) return true;
+      this.swapColors(vertex, uniqueNeighbor);
       --this.wander_visited[uniqueNeighbor];
     }
     return false;
   }
   tryColorNeighbor(vertex, uniqueNeighbor) {
+    this.swapColors(vertex, uniqueNeighbor);
+    if(this.triviallyColor(uniqueNeighbor, true)) { return true; }
+    this.swapColors(vertex, uniqueNeighbor);
+    return false;
+  }
+  swapColors(v1, v2) {
     [
-      this.adj[vertex].node.color,
-      this.adj[uniqueNeighbor].node.color
+      this.adj[v1].node.color,
+      this.adj[v2].node.color
     ] = 
       [
-        this.adj[uniqueNeighbor].node.color,
-        this.adj[vertex].node.color
-      ]; // swap colors with neighbor
+        this.adj[v2].node.color,
+        this.adj[v1].node.color
+      ];
     this.coloringQueue.push({
       'func': this.updateColor,
-      'params': [vertex, 'black', undefined],
+      'params': [v1, 'black'],
       'self': true
     });
     this.coloringQueue.push({
       'func': this.updateColor,
-      'params': [uniqueNeighbor, 'black', undefined],
-      'self': true
-    });
-    if(this.triviallyColor(uniqueNeighbor, true)) return true;
-    [
-      this.adj[vertex].node.color,
-      this.adj[uniqueNeighbor].node.color
-    ] = 
-      [
-        this.adj[uniqueNeighbor].node.color,
-        this.adj[vertex].node.color
-      ]; // swap colors with neighbor
-    this.coloringQueue.push({
-      'func': this.updateColor,
-      'params': [vertex, 'black', undefined],
-      'self': true
-    });
-    this.coloringQueue.push({
-      'func': this.updateColor,
-      'params': [uniqueNeighbor, 'black', undefined],
+      'params': [v2, 'black'],
       'self': true
     });
   }

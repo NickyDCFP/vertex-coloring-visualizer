@@ -1,6 +1,8 @@
 import { useState, useCallback } from 'react';
 
-export const useSetupStates = ({defaultConsoleMessage}) => {
+const defaultConsoleMessage = `Add nodes and edges for a more complex graph. Let's color!`; 
+
+export const useSetupStates = () => {
     const [planarity, setPlanarity] = useState(true);
     const [addNodes, setAddNodes] = useState(false);
     const [triangulate, setTriangulate] = useState(false);
@@ -8,6 +10,9 @@ export const useSetupStates = ({defaultConsoleMessage}) => {
     const [color, setColor] = useState(false);
     const [consoleMessage, setConsoleMessage] = useState(defaultConsoleMessage);
     const [consoleError, setConsoleError] = useState(false);
+    const [firstResolutionHeuristic, setFirstResolutionHeuristic] = useState(null);
+    const [defaultNavbar, setDefaultNavbar] = useState(true);
+    const [orderingHeuristic, setOrderingHeuristic] = useState(null);
   
     const togglePlanarity = () => {
       setPlanarity(!planarity);
@@ -36,6 +41,14 @@ export const useSetupStates = ({defaultConsoleMessage}) => {
       if(!clear) printConsole(`Cleared!`);
     }
     const startColor = () => {
+      if(!firstResolutionHeuristic) {
+        printConsole('Please choose your first resolution heuristic.', true);
+        return;
+      }
+      else if(!orderingHeuristic) {
+        printConsole('Please choose an ordering heuristic.', true);
+        return;
+      }
       setColor(true);
       printConsole(`Coloring...`);
     }
@@ -44,6 +57,7 @@ export const useSetupStates = ({defaultConsoleMessage}) => {
       setConsoleMessage(message);
       setConsoleError(isError);
     }, []);
+    const toggleNavbar = () => setDefaultNavbar(!defaultNavbar);
     return [
       planarity,
       togglePlanarity,
@@ -59,6 +73,12 @@ export const useSetupStates = ({defaultConsoleMessage}) => {
       consoleMessage,
       consoleError,
       printConsole,
+      firstResolutionHeuristic,
+      setFirstResolutionHeuristic,
+      defaultNavbar,
+      toggleNavbar,
+      orderingHeuristic,
+      setOrderingHeuristic,
     ]
   }
   
