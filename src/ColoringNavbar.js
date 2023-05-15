@@ -1,6 +1,6 @@
 import React from 'react';
 import Dropdown  from 'react-dropdown';
-import { Pause, Play, Square, ArrowDown } from 'react-feather';
+import { Pause, Play, Square } from 'react-feather';
 const interrupt = () => {return;}
 export const ColoringNavbar = ({
     firstResolutionHeuristic,
