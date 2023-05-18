@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/vertex-coloring-visualizer/static/css/main.68d2c41e.css",
-    "main.js": "/vertex-coloring-visualizer/static/js/main.16c6d0be.js",
+    "main.css": "/vertex-coloring-visualizer/static/css/main.36b52139.css",
+    "main.js": "/vertex-coloring-visualizer/static/js/main.5ab60e75.js",
     "static/js/787.bf9df236.chunk.js": "/vertex-coloring-visualizer/static/js/787.bf9df236.chunk.js",
     "index.html": "/vertex-coloring-visualizer/index.html",
-    "main.68d2c41e.css.map": "/vertex-coloring-visualizer/static/css/main.68d2c41e.css.map",
-    "main.16c6d0be.js.map": "/vertex-coloring-visualizer/static/js/main.16c6d0be.js.map",
+    "main.36b52139.css.map": "/vertex-coloring-visualizer/static/css/main.36b52139.css.map",
+    "main.5ab60e75.js.map": "/vertex-coloring-visualizer/static/js/main.5ab60e75.js.map",
     "787.bf9df236.chunk.js.map": "/vertex-coloring-visualizer/static/js/787.bf9df236.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.68d2c41e.css",
-    "static/js/main.16c6d0be.js"
+    "static/css/main.36b52139.css",
+    "static/js/main.5ab60e75.js"
   ]
 }
