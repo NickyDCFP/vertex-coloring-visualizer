@@ -1,10 +1,15 @@
 import React from 'react';
 import Dropdown  from 'react-dropdown';
-import { Pause, Play, Square } from 'react-feather';
+import { Pause, Play, ArrowLeft } from 'react-feather';
+import { useEffect, useMemo } from 'react';
 const interrupt = () => {return;}
 export const ColoringNavbar = ({
     firstResolutionHeuristic,
     setFirstResolutionHeuristic,
+    secondResolutionHeuristic,
+    setSecondResolutionHeuristic,
+    thirdResolutionHeuristic,
+    setThirdResolutionHeuristic,
     orderingHeuristic,
     setOrderingHeuristic,
     consoleError,
@@ -13,18 +18,60 @@ export const ColoringNavbar = ({
     startColor,
     color,
 }) => {
-    const heuristics = ["Kempe", "Wandering 5th"];
-    const ordering_heuristics = ["Smallest-Last", "Saturation"];
-    // make hover same color as dropdown part
+    const defaultHeuristic1 = useMemo(() => ({value: null, label: "Heuristic 1..."}), []);
+    const defaultHeuristic2 = useMemo(() => ({value: null, label: "Heuristic 2..."}), []);
+    const defaultHeuristic3 = useMemo(() => ({value: null, label: "Heuristic 3..."}), []);
+
+    const heuristics = [
+        {value: "Kempe", label: "Kempe"},
+        {value: "Wandering 5th", label: "Wandering 5th"},
+        {value: "Backtracking", label: "Backtracking"},
+    ];
+    const heuristics1 = [defaultHeuristic1, ...heuristics]
+        .filter(d => d.label !== firstResolutionHeuristic.label &&
+                     d.label !== secondResolutionHeuristic.label &&
+                     d.label !== thirdResolutionHeuristic.label);
+    const heuristics2 = [defaultHeuristic2, ...heuristics]
+        .filter(d => d.label !== firstResolutionHeuristic.label &&
+            d.label !== secondResolutionHeuristic.label &&
+            d.label !== thirdResolutionHeuristic.label);
+    const heuristics3 = [defaultHeuristic3, ...heuristics]
+        .filter(d => d.label !== firstResolutionHeuristic.label &&
+            d.label !== secondResolutionHeuristic.label &&
+            d.label !== thirdResolutionHeuristic.label);
+    useEffect(() => {
+        if(thirdResolutionHeuristic.value &&
+           (!firstResolutionHeuristic.value ||
+            !secondResolutionHeuristic.value ||
+            !orderingHeuristic.value))
+            setThirdResolutionHeuristic(defaultHeuristic3);
+        if(secondResolutionHeuristic.value &&
+           (!firstResolutionHeuristic.value ||
+            !orderingHeuristic.value))
+            setSecondResolutionHeuristic(defaultHeuristic2);
+    }, [
+        firstResolutionHeuristic,
+        secondResolutionHeuristic,
+        thirdResolutionHeuristic,
+        setFirstResolutionHeuristic,
+        setSecondResolutionHeuristic,
+        setThirdResolutionHeuristic,
+        orderingHeuristic,
+        defaultHeuristic1,
+        defaultHeuristic2,
+        defaultHeuristic3,
+    ]);
+    const ordering_heuristics = [
+        {value: null, label: "Ordering..."},
+        {value: "Smallest-Last", label: "Smallest-Last"},
+        {value: "Saturation", label: "Saturation"},
+    ];
     return (
     <div className="user-interface">
-        <Dropdown
-            className="heuristic-dropdown"
-            options={heuristics}
-            value={firstResolutionHeuristic}
-            onChange={setFirstResolutionHeuristic}
-            placeholder="Heuristic 1..."
-        />
+        <button
+            className="icon-button"
+            onClick={toggleNavbar}
+        ><ArrowLeft className="arrow-icon"/></button>
         <Dropdown
             className="heuristic-dropdown"
             options={ordering_heuristics}
@@ -32,20 +79,37 @@ export const ColoringNavbar = ({
             onChange={setOrderingHeuristic}
             placeholder="Ordering..."
         />
-        {color ?
-            <button
-                className="icon-button"
-                onClick={interrupt}
-            ><Pause className="icon"/></button> : 
-            <button
-                className="icon-button"
-                onClick={startColor}
-            ><Play className="icon"/></button>
-        }
-        <button
-            className="icon-button"
-            onClick={toggleNavbar}
-        ><Square className="icon"/></button>
+        <Dropdown
+            className="heuristic-dropdown"
+            options={heuristics1}
+            value={firstResolutionHeuristic}
+            onChange={setFirstResolutionHeuristic}
+        />
+        {orderingHeuristic.value && firstResolutionHeuristic.value ?
+            <>
+                <Dropdown
+                    className="heuristic-dropdown"
+                    options={heuristics2}
+                    value={secondResolutionHeuristic}
+                    onChange={setSecondResolutionHeuristic}
+                />
+                {secondResolutionHeuristic.value ? 
+                <Dropdown
+                    className="heuristic-dropdown"
+                    options={heuristics3}
+                    value={thirdResolutionHeuristic}
+                    onChange={setThirdResolutionHeuristic}
+                /> : null}
+                {color ?
+                    <button
+                        className="icon-button"
+                        onClick={interrupt}
+                    ><Pause className="icon"/></button> : 
+                    <button
+                        className="icon-button"
+                        onClick={startColor}
+                    ><Play className="icon"/></button>}
+            </> : null}
         <div className={`console${consoleError ? `-error` : ``}`}>{consoleMessage}</div>
     </div>
     )

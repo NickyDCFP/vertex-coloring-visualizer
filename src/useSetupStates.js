@@ -1,6 +1,8 @@
 import { useState, useCallback } from 'react';
 
 const defaultConsoleMessage = `Add nodes and edges for a more complex graph. Let's color!`; 
+const heuristicMessage = n => ({value: null, label: `Heuristic ${n}...`});
+const orderingMessage = {value: null, label: `Ordering...`};
 
 export const useSetupStates = () => {
     const [planarity, setPlanarity] = useState(true);
@@ -10,9 +12,11 @@ export const useSetupStates = () => {
     const [color, setColor] = useState(false);
     const [consoleMessage, setConsoleMessage] = useState(defaultConsoleMessage);
     const [consoleError, setConsoleError] = useState(false);
-    const [firstResolutionHeuristic, setFirstResolutionHeuristic] = useState(null);
+    const [firstResolutionHeuristic, setFirstResolutionHeuristic] = useState(heuristicMessage(1));
+    const [secondResolutionHeuristic, setSecondResolutionHeuristic] = useState(heuristicMessage(2));
+    const [thirdResolutionHeuristic, setThirdResolutionHeuristic] = useState(heuristicMessage(3));
     const [defaultNavbar, setDefaultNavbar] = useState(true);
-    const [orderingHeuristic, setOrderingHeuristic] = useState(null);
+    const [orderingHeuristic, setOrderingHeuristic] = useState(orderingMessage);
   
     const togglePlanarity = () => {
       setPlanarity(!planarity);
@@ -75,6 +79,10 @@ export const useSetupStates = () => {
       printConsole,
       firstResolutionHeuristic,
       setFirstResolutionHeuristic,
+      secondResolutionHeuristic,
+      setSecondResolutionHeuristic,
+      thirdResolutionHeuristic,
+      setThirdResolutionHeuristic,
       defaultNavbar,
       toggleNavbar,
       orderingHeuristic,

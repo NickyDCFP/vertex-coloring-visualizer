@@ -16,6 +16,8 @@ export const GraphViz = ({
   color,
   resetColor,
   firstResolutionHeuristic,
+  secondResolutionHeuristic,
+  thirdResolutionHeuristic,
   orderingHeuristic,
 }) => {
   const containerRef = useRef(null);
@@ -95,8 +97,21 @@ export const GraphViz = ({
   }, [graph, graphExists, clear, toggleClear, triangulateInterval, toggleTriangulate, triangulate]);
 
   useEffect(() => {
-    if (graphExists && color && !coloringStarted && firstResolutionHeuristic && orderingHeuristic) {
-      graph.color(resetColor, firstResolutionHeuristic.value, orderingHeuristic.value);
+    if (graphExists &&
+        color &&
+        !coloringStarted &&
+        firstResolutionHeuristic &&
+        secondResolutionHeuristic &&
+        thirdResolutionHeuristic &&
+        orderingHeuristic) {
+      graph.color(
+        resetColor,
+        [
+          firstResolutionHeuristic.value,
+          secondResolutionHeuristic.value,
+          thirdResolutionHeuristic.value
+        ],
+        orderingHeuristic.value);
       setColoringStarted(true);
     }
     else if(!color && coloringStarted) {
@@ -112,6 +127,8 @@ export const GraphViz = ({
     setColoringStarted,
     printConsole,
     firstResolutionHeuristic,
+    secondResolutionHeuristic,
+    thirdResolutionHeuristic,
     orderingHeuristic,
   ]);
 

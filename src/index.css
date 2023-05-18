@@ -175,13 +175,16 @@ button:active,
   transform: scale(1.1, 1.1);
   background-color: #b8b8f6;
 }
-.icon {
-  background-color: transparent;
+.icon,
+.arrow-icon {
   color: #2e2e2e;
+  margin-top: 1px;
+  background-color: transparent;
+  fill: transparent;
+}
+.icon {
   fill: #2e2e2e;
-  margin-top:1px;
 }
 .heuristic-dropdown:hover {
   border-radius: 5px;
-  margin-bottom: 0px;
 }

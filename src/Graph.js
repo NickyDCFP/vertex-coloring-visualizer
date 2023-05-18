@@ -4,10 +4,13 @@ import Queue from 'queue';
 
 const DEFAULTMAXKEMPEINTERCHANGES = 100;
 const DEFAULTMAXVISITWANDER = 2;
+const impasseResolvedColor = '#7cfc00';
 
 // pull out the svg listener setup into its own method so you can temporarily quiet them
 // during colorings
 
+
+const rotate = (arr, k) => [...arr.slice(k % arr.length), ...arr.slice(0, k % arr.length)];
 
 // Checks to see if two edges are the same
 const edgeEquals = (edge1, edge2) =>
@@ -129,7 +132,9 @@ export class Graph {
     // Queue of functions to be called regularly during coloring
     this.coloringQueue = new Queue();
     this.coloringSpeed = coloringSpeed;
+    // Helper variables for coloring
     this.wander_visited = {};
+    this.backtrackingRecolorings = 0;
     this.setUpSimulation(centerX, centerY);
     for (let i = 0; i < 5; ++i) this.addNode();
     for (let i = 0; i < 5; ++i)
@@ -499,24 +504,40 @@ export class Graph {
     this.updateNodes();
     this.updateEdges();
   }
-  coloringStep(interval, resetColor) {
+  coloringStep(interval, resetColor, resolutionHeuristics, orderingHeuristic, doRestart = false) {
     if (this.coloringQueue.length === 0) {
       clearInterval(interval);
-      resetColor();
       this.updateNodes();
       this.updateEdges();
+      if(doRestart) {
+        this.printConsole(`Darn, out of heuristics! Restarting...`, true);
+        this.color(resetColor, resolutionHeuristics, orderingHeuristic);
+      }
+      else resetColor();
     }
     const step = this.coloringQueue.shift();
     if (step === undefined) return;
     if (step['self']) step['func'].call(this, ...step['params']);
     else step['func'](...step['params']);
   }
-  exhaustQueue(resetColor) {
+  exhaustQueue(resetColor, resolutionHeuristics, orderingHeuristic, doRestart) {
     let interval = setTimeout(() => // Delay so the interval can compute before we pass it
-      setInterval(() => this.coloringStep(interval, resetColor), this.coloringSpeed), 0);
+      setInterval(() => 
+        this.coloringStep(
+          interval,
+          resetColor,
+          resolutionHeuristics,
+          orderingHeuristic,
+          doRestart
+        ), this.coloringSpeed), 0);
   }
-  color(resetColor, firstResolutionHeuristic, orderingHeuristic) {
+  color(
+    resetColor,
+    resolutionHeuristics,
+    orderingHeuristic
+  ) {
     if (!this.planar) return;
+    let doRestart = false;
     this.wander_visited = {};
     for (const id in this.adj) this.wander_visited[id] = 0;
     let wasColored = this.nodes[0].color !== 0;
@@ -527,7 +548,16 @@ export class Graph {
         const adjReference = this.smallestLast.pop();
         this.reintroduceNode(adjReference);
         if (!this.triviallyColor(adjReference.node.id) &&
-            !this.impasse(adjReference.node.id, firstResolutionHeuristic)) break;
+            !this.impasse(adjReference.node.id, resolutionHeuristics)) {
+              doRestart = true;
+              this.coloringQueue.push({
+                'func': this.printConsole,
+                'params': [`Rebuilding the graph and restarting...`, true],
+                'self': false
+              });
+              while(this.smallestLast.length > 0) this.reintroduceNode(this.smallestLast.pop());
+              break;
+            }
       }
     }
     else {
@@ -558,7 +588,10 @@ export class Graph {
       while(!satHeap.empty()) {
         const vertex = satHeap.pop();
         if (!this.triviallyColor(this.adj[vertex.id].node.id) &&
-            !this.impasse(this.adj[vertex.id].node.id, firstResolutionHeuristic)) break;
+            !this.impasse(this.adj[vertex.id].node.id, resolutionHeuristics)) {
+              doRestart = true;
+              break;
+            }
         for(const neighbor of this.adj[vertex.id].neighbors) {
           ++heapPointers[neighbor].sat;
           --heapPointers[neighbor].uncolored;
@@ -567,7 +600,7 @@ export class Graph {
       }
     }
     if(wasColored) setTimeout(() => this.exhaustQueue(resetColor), 1000);
-    else this.exhaustQueue(resetColor);
+    else this.exhaustQueue(resetColor, resolutionHeuristics, orderingHeuristic, doRestart);
   }
   slOrder() {
     const vertexHeap = new Heap((a, b) => a.degree - b.degree); // min-heap
@@ -610,20 +643,28 @@ export class Graph {
     }
     if (freeColors.length === 0) return false;
     let transitionColor = '#ffffff';
-    if (wasImpasse) transitionColor = '#7cfc00';
+    if (wasImpasse) transitionColor = impasseResolvedColor;
     this.recolor(vertex, freeColors[Math.floor(Math.random() * freeColors.length)], transitionColor);
     return true;
   }
-  impasse(vertex, firstResolutionHeuristic) {
+  impasse(vertex, resolutionHeuristics) {
     this.coloringQueue.push({
       'func': this.printConsole,
       'params': [`Impasse at node ${vertex}...`, true],
       'self': false
     });
-    const [heur1, heur2] = (firstResolutionHeuristic === "Kempe" ? [this.kempe, this.wander] :
-                                                                   [this.wander, this.kempe]);
-    if(!heur1.call(this, vertex)) return heur2.call(this, vertex);
-    return true;
+    const heuristicMapping = {"Kempe" : this.kempe,
+                              "Wandering 5th" : this.wander,
+                              "Backtracking" : this.localizedDeepBacktracking}
+    const heuristics = [];
+    for(const heur of resolutionHeuristics) {
+      if(heur) heuristics.push(heuristicMapping[heur]);
+      else break;
+    }
+    for(const heur of heuristics) {
+      if(heur.call(this, vertex)) return true;
+    }
+    return false;
   }
   kempe(vertex, maxKempeInterchanges = DEFAULTMAXKEMPEINTERCHANGES) {
     const randomizedNeighbors = [...this.adj[vertex].neighbors].sort(() => Math.random() - 0.5);
@@ -691,7 +732,6 @@ export class Graph {
     return success;
   }
   wander_helper(vertex, parent, T) {
-    console.log(this.adj[vertex].node.color);
     if(this.wander_visited[vertex] >= T) return false;
     ++this.wander_visited[vertex];
     const colorUnique = [-2, -1, -1, -1, -1];
@@ -741,5 +781,101 @@ export class Graph {
       'params': [v2, 'black'],
       'self': true
     });
+  }
+  // L = 17 because it's a similar ratio of graph size to 150 / 2000
+  localizedDeepBacktracking(vertex, L = 17, B = 300) {
+    this.coloringQueue.push({
+      'func': this.printConsole,
+      'params': [`Trying localized deep backtracking!`],
+      'self': false
+    });
+    if(this.adj[vertex].node.color === 0) this.adj[vertex].node.color = 1;
+    const q = new Queue();
+    const neighborhood = [];
+    q.push(vertex);
+    const visited = {};
+    for(const id in this.adj) visited[id] = false;
+    while(q.length !== 0 && neighborhood.length < L) {
+      const node = q.pop();
+      visited[node] = true;
+      neighborhood.push(node);
+      for(const neighbor of this.adj[node].neighbors) {
+        if(!visited[neighbor] && this.adj[neighbor].node.color !== 0) q.push(neighbor);
+      }
+    }
+    const origColoring = [];
+    for(const node of neighborhood) origColoring.push(this.adj[node].node.color);
+    const colors = [1, 2, 3, 4];
+    const neighborhood_colors = [];
+    for(const v of neighborhood)
+      neighborhood_colors.push(rotate([...colors], this.adj[v].node.color - 1));
+    this.backtrackingRecolorings = 0;
+    if(this.deepBacktrackingHelper(neighborhood, neighborhood_colors, neighborhood.length - 1, B)) {
+      for(const node of neighborhood) {
+        this.coloringQueue.push({
+          'func': this.updateColor,
+          'params': [node, impasseResolvedColor],
+          'self': true
+        });
+      }
+      this.coloringQueue.push({
+        'func': this.printConsole,
+        'params': [`Localized deep backtracking successful!`],
+        'self': false
+      });
+      return true;
+    }
+    this.coloringQueue.push({
+      'func': this.printConsole,
+      'params': [`Failed to resolve impasse with localized deep backtracking.`],
+      'self': true
+    });
+    for(let i = 0; i < neighborhood.size; ++i) this.recolor(neighborhood[i], origColoring[i], 'red');
+    return false;
+  }
+  deepBacktrackingHelper(neighborhood, neighborhood_colors, i, B) {
+    if(this.backtrackingRecolorings >= B) return false;
+    for(const color of neighborhood_colors[i]) {
+      ++this.backtrackingRecolorings;
+      this.recolor(neighborhood[i], color, 'black');
+      if(i > 0) {
+        if(this.deepBacktrackingHelper(neighborhood, neighborhood_colors, i - 1, B)) return true;
+      }
+      else if(this.validNeighborhoodColoring(neighborhood, neighborhood[i])) return true;
+    }
+    return false;
+  }
+  validNeighborhoodColoring(neighborhood, start) {
+    const visited = {};
+    for(const id in this.adj) visited[id] = false;
+    visited[start] = true;
+    let nextVertices = [start];
+    while (nextVertices.length !== 0) {
+      const vertex = nextVertices.pop();
+      const v_color = this.adj[vertex].node.color;
+      for (const neighbor of this.adj[vertex].neighbors) {
+        if (!visited[neighbor] && this.adj[neighbor].node.color !== 0) {
+          visited[neighbor] = true;
+          if(this.adj[neighbor].node.color === v_color) return false; 
+          if(neighbor in neighborhood) nextVertices.push([neighbor]);
+        }
+      }
+    }
+    return true;
+  }
+  fastRecolor(vertex, color) {
+    this.adj[vertex].node.color = color;
+    this.coloringQueue.push({
+      'func': this.fastUpdateColor,
+      'params': [vertex, color],
+      'self': true
+    });
+  }
+  fastUpdateColor(vertex, color) {
+    this.circleSelection
+    .filter(d => d.id === vertex)
+    .transition()
+    .duration(10)
+    .attr('fill', this.colors[color]);
   }
 }
