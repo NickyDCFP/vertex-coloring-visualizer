@@ -1,8 +1,8 @@
 import React from 'react';
 import Dropdown  from 'react-dropdown';
-import { Pause, Play, ArrowLeft } from 'react-feather';
+import { Play, ArrowLeft } from 'react-feather';
 import { useEffect, useMemo } from 'react';
-const interrupt = () => {return;}
+import { GithubButton } from './GithubButton';
 export const ColoringNavbar = ({
     firstResolutionHeuristic,
     setFirstResolutionHeuristic,
@@ -73,14 +73,14 @@ export const ColoringNavbar = ({
             onClick={toggleNavbar}
         ><ArrowLeft className="arrow-icon"/></button>
         <Dropdown
-            className="heuristic-dropdown"
+            className="heuristic-dropdown ordering-heuristic-dropdown"
             options={ordering_heuristics}
             value={orderingHeuristic}
             onChange={setOrderingHeuristic}
             placeholder="Ordering..."
         />
         <Dropdown
-            className="heuristic-dropdown"
+            className="heuristic-dropdown heuristic-dropdown-1"
             options={heuristics1}
             value={firstResolutionHeuristic}
             onChange={setFirstResolutionHeuristic}
@@ -88,28 +88,31 @@ export const ColoringNavbar = ({
         {orderingHeuristic.value && firstResolutionHeuristic.value ?
             <>
                 <Dropdown
-                    className="heuristic-dropdown"
+                    className="heuristic-dropdown heuristic-dropdown-2"
                     options={heuristics2}
                     value={secondResolutionHeuristic}
                     onChange={setSecondResolutionHeuristic}
                 />
                 {secondResolutionHeuristic.value ? 
                 <Dropdown
-                    className="heuristic-dropdown"
+                    className="heuristic-dropdown heuristic-dropdown-3"
                     options={heuristics3}
                     value={thirdResolutionHeuristic}
                     onChange={setThirdResolutionHeuristic}
                 /> : null}
                 {color ?
-                    <button
-                        className="icon-button"
-                        onClick={interrupt}
-                    ><Pause className="icon"/></button> : 
+                    null :
+                    // <button
+                    //     className="icon-button"
+                    //     onClick={interrupt}
+                    // ><Pause className="icon"/></button> : 
                     <button
                         className="icon-button"
                         onClick={startColor}
+                        id="coloring-play-button"
                     ><Play className="icon"/></button>}
             </> : null}
+        <GithubButton/>
         <div className={`console${consoleError ? `-error` : ``}`}>{consoleMessage}</div>
     </div>
     )

@@ -33,7 +33,8 @@ export const GraphViz = ({
       .append('svg')
       .classed('graph-display', true)
       .attr('width', innerWidth)
-      .attr('height', innerHeight));
+      .attr('height', innerHeight - 50)
+      .style('top', 50 + 'px'));
   }, [innerWidth, innerHeight]);
 
   useEffect(() => {

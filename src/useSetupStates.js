@@ -17,7 +17,9 @@ export const useSetupStates = () => {
     const [thirdResolutionHeuristic, setThirdResolutionHeuristic] = useState(heuristicMessage(3));
     const [defaultNavbar, setDefaultNavbar] = useState(true);
     const [orderingHeuristic, setOrderingHeuristic] = useState(orderingMessage);
-  
+    const [welcomeMessagePage, setWelcomeMessagePage] = useState(0);
+    const [coloringTutorialPage, setColoringTutorialPage] = useState(0);
+
     const togglePlanarity = () => {
       setPlanarity(!planarity);
       let message;
@@ -61,7 +63,10 @@ export const useSetupStates = () => {
       setConsoleMessage(message);
       setConsoleError(isError);
     }, []);
-    const toggleNavbar = () => setDefaultNavbar(!defaultNavbar);
+    const toggleNavbar = () => {
+      if(defaultNavbar) printConsole(`Select your heuristics!`);
+      setDefaultNavbar(!defaultNavbar);
+    }
     return [
       planarity,
       togglePlanarity,
@@ -87,6 +92,10 @@ export const useSetupStates = () => {
       toggleNavbar,
       orderingHeuristic,
       setOrderingHeuristic,
+      welcomeMessagePage,
+      setWelcomeMessagePage,
+      coloringTutorialPage,
+      setColoringTutorialPage,
     ]
   }
   

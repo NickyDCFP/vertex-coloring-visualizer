@@ -2,8 +2,11 @@ import * as d3 from 'd3';
 import Heap from 'heap';
 import Queue from 'queue';
 
-const DEFAULTMAXKEMPEINTERCHANGES = 100;
+const DEFAULTMAXKEMPEINTERCHANGES = 5;
 const DEFAULTMAXVISITWANDER = 2;
+// L = 17 because it's a similar ratio of graph size to 150 / 2000
+const DEFAULTBACKTRACKTREESIZE = 17;
+const DEFAULTMAXBACKTRACKRECOLORINGS = 200;
 const impasseResolvedColor = '#7cfc00';
 
 // pull out the svg listener setup into its own method so you can temporarily quiet them
@@ -340,7 +343,7 @@ export class Graph {
       x + this.rect.x + this.radius + this.nodeBoundaryPadding + 1 <
       this.rect.width &&
       y > this.radius + this.nodeBoundaryPadding &&
-      y + this.rect.y + this.radius + this.nodeBoundaryPadding + 1 <
+      y + this.radius + this.nodeBoundaryPadding + 1 <
       this.rect.height
     );
   }
@@ -782,8 +785,11 @@ export class Graph {
       'self': true
     });
   }
-  // L = 17 because it's a similar ratio of graph size to 150 / 2000
-  localizedDeepBacktracking(vertex, L = 17, B = 300) {
+  localizedDeepBacktracking(
+    vertex,
+    L = DEFAULTBACKTRACKTREESIZE,
+    B = DEFAULTMAXBACKTRACKRECOLORINGS
+  ) {
     this.coloringQueue.push({
       'func': this.printConsole,
       'params': [`Trying localized deep backtracking!`],

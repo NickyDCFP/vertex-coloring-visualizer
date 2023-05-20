@@ -1,8 +1,10 @@
 import './App.css';
 import { GraphViz } from './GraphViz';
 import { Navbar } from './Navbar';
-import { ColoringNavbar } from './ColoringNavbar'
+import { ColoringNavbar } from './ColoringNavbar';
 import { useSetupStates } from './useSetupStates';
+import { TutorialMessage } from './TutorialMessage';
+import { welcomeMessages, tutorialMessages } from './displayMessages';
 
 // Known bugs:
   // Edges don't properly delete after coloring
@@ -12,15 +14,13 @@ import { useSetupStates } from './useSetupStates';
   // Add icon/better meta tags
   // sounds for coloring, maybe have pitches deepen as the recursion stack grows
   // maybe merge the three dropdowns for heuristic selection into
-  // one dropdown where you can select a few?
+    // one dropdown where you can select a few?
 
 // to alter:
   // allow user to move nodes --> click on a menu and they can move or remove 
   // once explanations are in -- allow user to "step back" and "step back to the most interesting step recently"
-  // mention limitations: this generates plane graphs, not planar graphs
-    // you can technically draw any planar graph in the plane with straight edges
-    // note that you only need an ordering heuristic and one resolution heuristic to color,
-    // but you can select up to three.
+  // note that you only need an ordering heuristic and one resolution heuristic to color,
+  // but you can select up to three.
 
 const innerHeight = window.innerHeight;
 const innerWidth = window.innerWidth;
@@ -50,39 +50,57 @@ const App = () => {
     defaultNavbar,
     toggleNavbar,
     orderingHeuristic,
-    setOrderingHeuristic
+    setOrderingHeuristic,
+    welcomeMessagePage,
+    setWelcomeMessagePage,
+    coloringTutorialPage,
+    setColoringTutorialPage,
   ] = useSetupStates();
   return (
     <>
       {defaultNavbar ? 
-        <Navbar
-          togglePlanarity={togglePlanarity}
-          planarity={planarity}
-          toggleAddNodes={toggleAddNodes}
-          addNodes={addNodes}
-          toggleTriangulate={toggleTriangulate}
-          triangulate={triangulate}
-          toggleClear={toggleClear}
-          clear={clear}
-          consoleError={consoleError}
-          consoleMessage={consoleMessage}
-          toggleNavbar={toggleNavbar}
-        /> :
-        <ColoringNavbar
-          firstResolutionHeuristic={firstResolutionHeuristic}
-          setFirstResolutionHeuristic={setFirstResolutionHeuristic}
-          secondResolutionHeuristic={secondResolutionHeuristic}
-          setSecondResolutionHeuristic={setSecondResolutionHeuristic}
-          thirdResolutionHeuristic={thirdResolutionHeuristic}
-          setThirdResolutionHeuristic={setThirdResolutionHeuristic}
-          orderingHeuristic={orderingHeuristic}
-          setOrderingHeuristic={setOrderingHeuristic}
-          consoleError={consoleError}
-          consoleMessage={consoleMessage}
-          toggleNavbar={toggleNavbar}
-          startColor={startColor}
-          color={color}
-        />}
+        <>
+          <TutorialMessage
+            pageMessages={welcomeMessages}
+            pageNumber={welcomeMessagePage}
+            setPage={setWelcomeMessagePage}
+          />
+          <Navbar
+            togglePlanarity={togglePlanarity}
+            planarity={planarity}
+            toggleAddNodes={toggleAddNodes}
+            addNodes={addNodes}
+            toggleTriangulate={toggleTriangulate}
+            triangulate={triangulate}
+            toggleClear={toggleClear}
+            clear={clear}
+            consoleError={consoleError}
+            consoleMessage={consoleMessage}
+            toggleNavbar={toggleNavbar}
+          /> 
+        </> :
+        <>
+          <TutorialMessage
+            pageMessages={tutorialMessages}
+            pageNumber={coloringTutorialPage}
+            setPage={setColoringTutorialPage}
+          />
+          <ColoringNavbar
+            firstResolutionHeuristic={firstResolutionHeuristic}
+            setFirstResolutionHeuristic={setFirstResolutionHeuristic}
+            secondResolutionHeuristic={secondResolutionHeuristic}
+            setSecondResolutionHeuristic={setSecondResolutionHeuristic}
+            thirdResolutionHeuristic={thirdResolutionHeuristic}
+            setThirdResolutionHeuristic={setThirdResolutionHeuristic}
+            orderingHeuristic={orderingHeuristic}
+            setOrderingHeuristic={setOrderingHeuristic}
+            consoleError={consoleError}
+            consoleMessage={consoleMessage}
+            toggleNavbar={toggleNavbar}
+            startColor={startColor}
+            color={color}
+          />
+        </>}
       <GraphViz
         innerHeight={innerHeight}
         innerWidth={innerWidth}

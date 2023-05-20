@@ -26,6 +26,8 @@ cursor {
   stroke: red;
 }
 svg {
+  z-index: 1;
+  position: relative;
   background-color: #02000b;
 }
 .node{
@@ -41,10 +43,72 @@ svg {
   user-select: none;
 }
 .user-interface {
+  position: fixed;
+  width: 100%;
+  height: 45px;
+  padding-bottom: 5px;
+  z-index: 3;
+}
+.user-interface,
+.tutorial-div {
   background-color: #e5e2e0;
 }
-button {
-  border: 0px solid rgba(255, 255, 255, 0); /* border for inset shadows */
+.tutorial-div {
+  z-index: 2;
+  font-family: Franklin Gothic Light;
+  border: 5px solid gray;
+  border-radius: 5px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 700px;
+  height: 500px;
+  user-select: none;
+  overflow: hidden;
+}
+.tutorial-text {
+  transform: translate(0px, -25px);
+  margin-top: 10px;
+  margin-bottom: 10px;
+  margin-left: 10px;
+  margin-right: 10px;
+  font-size: 1.2em;
+}
+.tutorial-back-button {
+  position: absolute;
+  top: 450px;
+  left: 0px;
+}
+.tutorial-next-button {
+  position: absolute;
+  top: 450px;
+  right: 5px;
+}
+.tutorial-x-button {
+  position: absolute;
+  top: 0px;
+  left: 652px;
+}
+.tutorial-title {
+  text-align: center;
+  top: -15px;
+  position: relative;
+  width: 700px;
+  height: 45px;
+  border-bottom: 3px solid #2e2e2e;
+  cursor: move;
+}
+.button-link {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  text-decoration: unset;
+}
+button,
+.button-link,
+.icon-link {
+  border: 0px solid rgba(255, 255, 255, 0); /* transparent border for inset shadows */
   box-sizing: border-box;
   font-family: Franklin Gothic Light;
   padding: 7px;
@@ -60,12 +124,26 @@ button {
   color: #2e2e2e;
   transition-duration: 0.2s;
 }
+.icon-link {
+  position: absolute;
+  left: 75.7%;
+  width: 40px;
+  border-radius: 20px;
+}
+.icon-link .icon {
+  margin-top: 2px;
+  margin-right: 1%;
+}
 button:hover,
-.heuristic-dropdown:hover {
+.heuristic-dropdown:hover,
+.button-link:hover,
+.icon-link:hover {
   box-shadow: 0 1px 3px 1px #2527294d, 0 4px 8px 3px #25272926;
 }
 button:active,
-.heuristic-dropdown:active {
+.heuristic-dropdown:active,
+.button-link:active,
+.icon-link:active {
   box-shadow: inset 0 1px 3px 1px #2527291d, 0 4px 8px 3px #25272986;
   transition-duration: 0.05s;
 }
@@ -75,31 +153,53 @@ button:active,
   width: 150px;
   height: 40px;
 }
-.icon-button {
+.icon-button,
+.button-link,
+.tutorial-back-button,
+.tutorial-next-button,
+.tutorial-x-button,
+.icon-link {
   height: 40px;
 }
 .toggle-button,
 .state-button-off,
 .icon-button,
+.tutorial-back-button,
+.tutorial-next-button,
 .heuristic-dropdown,
-.heuristic-dropdown .Dropdown-menu {
+.heuristic-dropdown .Dropdown-menu,
+.button-link,
+.icon-link {
   background-color: #8585ff;
 }
 .toggle-button:hover,
 .state-button-off:hover,
-.icon-button:hover {
+.icon-button:hover,
+.tutorial-back-button:hover,
+.tutorial-next-button:hover,
+.button-link:hover,
+.icon-link:hover {
   background-color: #b8b8f6;
 }
-.toggle-button:active, .state-button-off:active, .icon-button:active {
+.toggle-button:active,
+.state-button-off:active,
+.icon-button:active,
+.tutorial-back-button:active,
+.tutorial-next-button:active,
+.button-link:active,
+.icon-link:active {
   background-color: #b8b8f69e;
 }
-.state-button-on {
+.state-button-on,
+.tutorial-x-button {
   background-color: #ff8585;
 }
-.state-button-on:hover{
+.state-button-on:hover
+.tutorial-x-button:hover {
   background-color: #f6b8b8;
 }
-.state-button-on:active {
+.state-button-on:active,
+.tutorial-x-button:active {
   background-color: #f6b8b89e;
 }
 .console, .console-error {
@@ -111,13 +211,13 @@ button:active,
   overflow: hidden;
   border-radius: 5px;
   position: absolute;
-  top: 0;
-  right: 0;
+  top: 0px;
+  right: 0px;
   margin-top: 2px;
   margin-bottom: 2px;
   margin-right: 5px;
   font-family: 'Courier';
-  width: 300px;
+  width: 19.5%;
   height: 29px;
   word-wrap: normal;
   font-size: 13px;
@@ -187,4 +287,12 @@ button:active,
 }
 .heuristic-dropdown:hover {
   border-radius: 5px;
+}
+.blinking {
+  animation: blinking 0.7s infinite;
+}
+@keyframes blinking {
+  50% {
+    opacity: 0.65;
+  } 
 }
